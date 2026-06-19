@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 public class FilmController {
 
-    private final static LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping
