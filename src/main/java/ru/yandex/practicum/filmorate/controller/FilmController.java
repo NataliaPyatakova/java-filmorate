@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.validation.OnCreate;
+import ru.yandex.practicum.filmorate.validation.OnUpdate;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -25,9 +28,9 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film save(@Valid @RequestBody Film film) {
+    public Film save(@Validated({OnCreate.class, Default.class}) @RequestBody Film film) {
         log.info("Saving film {}", film);
-        validate(film);
+        validateDate(film);
         film.setId(getNextId());
         log.debug("Generated filmId {}", film.getId());
         films.put(film.getId(), film);
@@ -35,25 +38,28 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film newFilm) {
+    public Film update(@Validated({OnUpdate.class, Default.class}) @RequestBody Film newFilm) {
         log.info("Updating newFilm {}", newFilm);
-        validate(newFilm);
-        if (newFilm.getId() == null || newFilm.getId() == 0) {
-            throw new ValidationException("Id должен быть указан");
-        }
+        validateDate(newFilm);
         if (films.containsKey(newFilm.getId())) {
             Film oldFilm = films.get(newFilm.getId());
             log.info("Updating OldFilm {}", oldFilm);
-            oldFilm.setName(newFilm.getName());
-            oldFilm.setDescription(newFilm.getDescription());
-            oldFilm.setReleaseDate(newFilm.getReleaseDate());
+            if (newFilm.getName() != null && !newFilm.getName().isBlank()) { //пустоту разрешаем, но не записываем
+                oldFilm.setName(newFilm.getName());
+            }
+            if (newFilm.getDescription() != null && !newFilm.getDescription().isBlank()) { //пустоту разрешаем, но не записываем
+                oldFilm.setDescription(newFilm.getDescription());
+            }
+            if (newFilm.getReleaseDate() != null) { //пустоту разрешаем, но не записываем
+                oldFilm.setReleaseDate(newFilm.getReleaseDate());
+            }
             oldFilm.setDuration(newFilm.getDuration());
             return oldFilm;
         }
         throw new ValidationException("Фильм с id = " + newFilm.getId() + " не найден");
     }
 
-    private static void validate(Film film) {
+    private static void validateDate(Film film) {
         if (film.getReleaseDate().isBefore(START_RELEASE_DATE)) {
             throw new ValidationException("Дата релиза должна быть не раньше " + START_RELEASE_DATE);
         }

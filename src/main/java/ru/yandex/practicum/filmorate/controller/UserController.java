@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.validation.OnCreate;
+import ru.yandex.practicum.filmorate.validation.OnUpdate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User save(@Valid @RequestBody User user) {
+    public User save(@Validated({OnCreate.class, Default.class}) @RequestBody User user) {
         log.info("Saving user {}", user);
         replaceName(user);
         log.debug("Replaced userName for save {}", user.getName());
@@ -34,23 +37,22 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User newUser) {
+    public User update(@Validated({OnUpdate.class, Default.class}) @RequestBody User newUser) {
         log.info("Updating newUser {}", newUser);
-        if (newUser.getId() == null || newUser.getId() == 0) {
-            throw new ValidationException("Id должен быть указан");
-        }
         if (users.containsKey(newUser.getId())) {
             replaceName(newUser);
             log.debug("Replaced userName for update {}", newUser.getName());
             User oldUser = users.get(newUser.getId());
             log.debug("Old user for update {}", oldUser);
-            if (newUser.getEmail() != null && !newUser.getEmail().isBlank()) {
+            if (newUser.getEmail() != null && !newUser.getEmail().isBlank()) { //пустоту разрешаем, но не записываем
                 oldUser.setEmail(newUser.getEmail());
             }
-            if (newUser.getLogin() != null && !newUser.getLogin().isBlank()) {
+            if (newUser.getLogin() != null && !newUser.getLogin().isBlank()) { //пустоту разрешаем, но не записываем
                 oldUser.setLogin(newUser.getLogin());
             }
-            oldUser.setName(newUser.getName());
+            if (newUser.getName() != null && !newUser.getName().isBlank()) { //пустоту разрешаем, но не записываем
+                oldUser.setName(newUser.getName());
+            }
             oldUser.setBirthday(newUser.getBirthday());
             return oldUser;
         }

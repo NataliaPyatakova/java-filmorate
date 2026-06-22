@@ -121,7 +121,7 @@ class FilmorateApplicationTests {
         try {
             userController.update(user1);
         } catch (ValidationException e) {
-            Assertions.assertEquals("Id должен быть указан", e.getMessage());
+            Assertions.assertEquals("Пользователь с id = null не найден", e.getMessage());
         }
     }
 
@@ -215,7 +215,7 @@ class FilmorateApplicationTests {
         try {
             filmController.update(film1);
         } catch (ValidationException e) {
-            Assertions.assertEquals("Id должен быть указан", e.getMessage());
+            Assertions.assertEquals("Фильм с id = null не найден", e.getMessage());
         }
     }
 
