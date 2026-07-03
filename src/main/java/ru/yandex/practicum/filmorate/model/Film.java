@@ -5,12 +5,15 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import ru.yandex.practicum.filmorate.validation.OnCreate;
 import ru.yandex.practicum.filmorate.validation.OnUpdate;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
+@EqualsAndHashCode(exclude = {"likes"})
 public class Film {
 
     @NotNull(groups = OnUpdate.class) //проверяем на наличие только при обновлении
@@ -23,4 +26,9 @@ public class Film {
     private LocalDate releaseDate;//дата релиза — releaseDate;
     @Positive //проверяем всегда на корректность
     private int duration; //продолжительность фильма — duration.
+    private Set<Integer> likes;
+
+    public Integer countLikes() {
+        return likes.size();
+    }
 }
