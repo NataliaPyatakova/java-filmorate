@@ -42,11 +42,15 @@ public class UserService {
         return userStorage.removeFriend(id, friendId);
     }
 
-    public Set<User> findAllFriends(Integer id) {
+    public List<User> findAllFriends(Integer id) {
         return userStorage.findAllFriends(id);
     }
 
     public Set<User> findCommonFriends(Integer id, Integer otherId) {
         return userStorage.findCommonFriends(id, otherId);
+    }
+
+    public void deleteAll() {
+        userStorage.deleteAll();
     }
 }

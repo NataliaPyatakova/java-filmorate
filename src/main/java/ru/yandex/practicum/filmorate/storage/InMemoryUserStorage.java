@@ -73,6 +73,7 @@ public class InMemoryUserStorage implements UserStorage {
             throw new ValidationException("Нельзя добавить в друзья самого себя");
         }
         user.getFriends().add(friend.getId());
+        friend.getFriends().add(user.getId());
         return user;
     }
 
@@ -82,15 +83,16 @@ public class InMemoryUserStorage implements UserStorage {
         User user = findById(id);
         User friend = findById(friendId);
         user.getFriends().remove(friend.getId());
+        friend.getFriends().remove(user.getId());
         return user;
     }
 
     @Override
-    public Set<User> findAllFriends(Integer id) {
+    public List<User> findAllFriends(Integer id) {
         log.info("Finding all friends from User {}", id);
         User user = findById(id);
         return users.values().stream()
-                .filter(friend -> user.getFriends().contains(friend.getId())).collect(Collectors.toSet());
+                .filter(friend -> user.getFriends().contains(friend.getId())).toList();
     }
 
     @Override
@@ -102,6 +104,11 @@ public class InMemoryUserStorage implements UserStorage {
                 .filter(friend -> otherUser.getFriends().contains(friend))
                 .map(this::findById)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void deleteAll() {
+        users.clear();
     }
 
     private static void replaceName(User user) {

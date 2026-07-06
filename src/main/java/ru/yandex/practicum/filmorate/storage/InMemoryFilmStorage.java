@@ -95,6 +95,11 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .toList();
     }
 
+    @Override
+    public void deleteAll() {
+        films.clear();
+    }
+
     private static void validateDate(Film film) {
         if (film.getReleaseDate().isBefore(START_RELEASE_DATE)) {
             throw new ValidationException("Дата релиза должна быть не раньше " + START_RELEASE_DATE);

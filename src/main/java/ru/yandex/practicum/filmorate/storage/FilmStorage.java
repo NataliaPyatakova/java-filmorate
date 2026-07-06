@@ -19,4 +19,6 @@ public interface FilmStorage {
     Film removeLike(Integer id, Integer userId);
 
     List<Film> findMostRated(Integer count);
+
+    void deleteAll();
 }

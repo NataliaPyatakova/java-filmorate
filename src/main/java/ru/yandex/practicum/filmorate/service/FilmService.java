@@ -44,4 +44,8 @@ public class FilmService {
     public List<Film> findMostRated(Integer count) {
         return filmStorage.findMostRated(count);
     }
+
+    public void deleteAll() {
+        filmStorage.deleteAll();
+    }
 }
