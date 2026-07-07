@@ -31,11 +31,13 @@ class FilmorateApplicationTests {
     private static User user;
     private static User user1;
     private static User user2;
+    private static User newUser;
     private static Film film;
     private static Film film1;
     private static Film film2;
     private static Film film3;
     private static Film film4;
+    private static Film newFilm;
 
     @BeforeEach
     void beforeEach() {
@@ -43,46 +45,56 @@ class FilmorateApplicationTests {
         filmController = new FilmController(filmService);
         filmService.deleteAll();
         userService.deleteAll();
-        user = new User();
-        user.setLogin("user");
-        user.setName("user");
-        user.setEmail("email@ya.ru");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
-        user1 = new User();
-        user1.setLogin("user1");
-        user1.setName("user1");
-        user1.setEmail("email@ya.ru");
-        user1.setBirthday(LocalDate.of(1990, 1, 1));
-        user2 = new User();
-        user2.setLogin("user2");
-        user2.setName("user2");
-        user2.setEmail("email@ya.ru");
-        user2.setBirthday(LocalDate.of(1958, 1, 1));
-        film = new Film();
-        film.setName("film");
-        film.setDescription("description");
-        film.setReleaseDate(LocalDate.of(1990, 1, 1));
-        film.setDuration(200);
-        film1 = new Film();
-        film1.setName("film1");
-        film1.setDescription("description1");
-        film1.setReleaseDate(LocalDate.of(1990, 1, 1));
-        film1.setDuration(100);
-        film2 = new Film();
-        film2.setName("film2");
-        film2.setDescription("description1");
-        film2.setReleaseDate(LocalDate.of(1990, 1, 1));
-        film2.setDuration(100);
-        film3 = new Film();
-        film3.setName("film3");
-        film3.setDescription("description1");
-        film3.setReleaseDate(LocalDate.of(1990, 1, 1));
-        film3.setDuration(100);
-        film4 = new Film();
-        film4.setName("film4");
-        film4.setDescription("description1");
-        film4.setReleaseDate(LocalDate.of(1990, 1, 1));
-        film4.setDuration(100);
+        user = new User()
+                .setLogin("user")
+                .setName("user")
+                .setEmail("email@ya.ru")
+                .setBirthday(LocalDate.of(1990, 1, 1));
+        user1 = new User()
+                .setLogin("user1")
+                .setName("user1")
+                .setEmail("email1@ya.ru")
+                .setBirthday(LocalDate.of(1990, 1, 1));
+        user2 = new User()
+                .setLogin("user2")
+                .setName("user2")
+                .setEmail("email2@ya.ru")
+                .setBirthday(LocalDate.of(1958, 1, 1));
+        newUser = new User()
+                .setLogin("newLogin")
+                .setName("newName")
+                .setEmail("newEmail@ya.ru")
+                .setBirthday(LocalDate.of(2000, 1, 1));
+        film = new Film()
+                .setName("film")
+                .setDescription("description")
+                .setReleaseDate(LocalDate.of(1990, 1, 1))
+                .setDuration(200);
+        film1 = new Film()
+                .setName("film1")
+                .setDescription("description1")
+                .setReleaseDate(LocalDate.of(1990, 1, 1))
+                .setDuration(100);
+        film2 = new Film()
+                .setName("film2")
+                .setDescription("description1")
+                .setReleaseDate(LocalDate.of(1990, 1, 1))
+                .setDuration(100);
+        film3 = new Film()
+                .setName("film3")
+                .setDescription("description1")
+                .setReleaseDate(LocalDate.of(1990, 1, 1))
+                .setDuration(100);
+        film4 = new Film()
+                .setName("film4")
+                .setDescription("description1")
+                .setReleaseDate(LocalDate.of(1990, 1, 1))
+                .setDuration(100);
+        newFilm = new Film()
+                .setName("newName")
+                .setDescription("newLogin")
+                .setReleaseDate(LocalDate.of(2000, 1, 1))
+                .setDuration(500);
     }
 
     //ТЕСТЫ НА USER
@@ -133,12 +145,7 @@ class FilmorateApplicationTests {
     @DisplayName("Проверка PUT на одном пользователе")
     void testUpdateUser() {
         userController.save(user);
-        User newUser = new User();
         newUser.setId(user.getId());
-        newUser.setName("newName");
-        newUser.setLogin("newLogin");
-        newUser.setEmail("newEmail@ya.ru");
-        newUser.setBirthday(LocalDate.of(2000, 1, 1));
         User updatedUser = userController.update(newUser);
         Assertions.assertAll(
                 () -> Assertions.assertEquals(user.getName(), updatedUser.getName()),
@@ -329,8 +336,6 @@ class FilmorateApplicationTests {
         );
     }
 
-
-    //public Set<User> findCommonFriends(@PathVariable("id") Integer id, @PathVariable("otherId") Integer otherId)
     @Test
     @DisplayName("Проверка GET общих друзей неправильный пользователь")
     void testFindCommonFriendWrongUser() {
@@ -428,12 +433,7 @@ class FilmorateApplicationTests {
     @DisplayName("Проверка PUT на одном фильме")
     void testUpdateFilm() {
         filmController.save(film);
-        Film newFilm = new Film();
         newFilm.setId(film.getId());
-        newFilm.setName("newName");
-        newFilm.setDescription("newLogin");
-        newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-        newFilm.setDuration(500);
         Film updatedFilm = filmController.update(newFilm);
         Assertions.assertAll(
                 () -> Assertions.assertEquals(film.getName(), updatedFilm.getName()),
@@ -471,7 +471,6 @@ class FilmorateApplicationTests {
     @DisplayName("Проверка PUT на фильме c неверной датой")
     void testUpdateFilmWithWrongDate() {
         filmController.save(film);
-        Film newFilm = new Film();
         newFilm.setId(film.getId());
         newFilm.setReleaseDate(LocalDate.of(1890, 1, 1));
         try {
