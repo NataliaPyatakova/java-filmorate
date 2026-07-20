@@ -262,9 +262,7 @@ class FilmorateApplicationTests {
         userController.addFriend(user.getId(), user1.getId());
         Assertions.assertAll(
                 () -> Assertions.assertEquals(1, user.getFriends().size()),
-                () -> Assertions.assertEquals(1, user1.getFriends().size()),
-                () -> Assertions.assertTrue(user.getFriends().contains(user1.getId())),
-                () -> Assertions.assertTrue(user1.getFriends().contains(user.getId()))
+                () -> Assertions.assertTrue(user.getFriends().contains(user1.getId()))
         );
     }
 

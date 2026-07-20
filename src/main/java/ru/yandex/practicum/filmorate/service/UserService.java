@@ -70,8 +70,6 @@ public class UserService {
         }
         //добавляем пользователя другу
         userStorage.addFriend(user, friend);
-        //добавляем другу пользователя //условие тестов
-        userStorage.addFriend(friend, user);
         return user;
     }
 
@@ -81,8 +79,6 @@ public class UserService {
         User friend = findById(friendId);
         //удаляем друга у пользователя
         userStorage.removeFriend(user, friend);
-        //удаляем пользователя у друга //условие тестов
-        userStorage.removeFriend(friend, user);
         return user;
     }
 
