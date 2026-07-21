@@ -11,8 +11,12 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.service.MpaRatingService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
@@ -28,6 +32,10 @@ class FilmorateApplicationTests {
     private UserService userService;
     @Autowired
     private FilmService filmService;
+    @Autowired
+    private MpaRatingService mpaRatingService;
+    @Autowired
+    private GenreService genreService;
     private static User user;
     private static User user1;
     private static User user2;
@@ -39,12 +47,15 @@ class FilmorateApplicationTests {
     private static Film film4;
     private static Film newFilm;
 
+
+
     @BeforeEach
     void beforeEach() {
         userController = new UserController(userService);
         filmController = new FilmController(filmService);
         filmService.deleteAll();
         userService.deleteAll();
+        MpaRating mpaRating = mpaRatingService.findAll().getFirst();
         user = new User()
                 .setLogin("user")
                 .setName("user")
@@ -69,32 +80,38 @@ class FilmorateApplicationTests {
                 .setName("film")
                 .setDescription("description")
                 .setReleaseDate(LocalDate.of(1990, 1, 1))
-                .setDuration(200);
+                .setDuration(200)
+                .setMpa(mpaRating);
         film1 = new Film()
                 .setName("film1")
                 .setDescription("description1")
                 .setReleaseDate(LocalDate.of(1990, 1, 1))
-                .setDuration(100);
+                .setDuration(100)
+                .setMpa(mpaRating);
         film2 = new Film()
                 .setName("film2")
                 .setDescription("description1")
                 .setReleaseDate(LocalDate.of(1990, 1, 1))
-                .setDuration(100);
+                .setDuration(100)
+                .setMpa(mpaRating);
         film3 = new Film()
                 .setName("film3")
                 .setDescription("description1")
                 .setReleaseDate(LocalDate.of(1990, 1, 1))
-                .setDuration(100);
+                .setDuration(100)
+                .setMpa(mpaRating);
         film4 = new Film()
                 .setName("film4")
                 .setDescription("description1")
                 .setReleaseDate(LocalDate.of(1990, 1, 1))
-                .setDuration(100);
+                .setDuration(100)
+                .setMpa(mpaRating);
         newFilm = new Film()
                 .setName("newName")
                 .setDescription("newLogin")
                 .setReleaseDate(LocalDate.of(2000, 1, 1))
-                .setDuration(500);
+                .setDuration(500)
+                .setMpa(mpaRating);
     }
 
     //ТЕСТЫ НА USER
@@ -402,7 +419,9 @@ class FilmorateApplicationTests {
                 () -> Assertions.assertEquals(film.getName(), savedFilm.getName()),
                 () -> Assertions.assertEquals(film.getDescription(), savedFilm.getDescription()),
                 () -> Assertions.assertEquals(film.getReleaseDate(), savedFilm.getReleaseDate()),
-                () -> Assertions.assertEquals(film.getDuration(), savedFilm.getDuration())
+                () -> Assertions.assertEquals(film.getDuration(), savedFilm.getDuration()),
+                () -> Assertions.assertEquals(film.getGenres(), savedFilm.getGenres()),
+                () -> Assertions.assertEquals(film.getMpa(), savedFilm.getMpa())
         );
     }
 
@@ -420,10 +439,14 @@ class FilmorateApplicationTests {
                 () -> Assertions.assertEquals(film.getDescription(), savedFilm.getDescription()),
                 () -> Assertions.assertEquals(film.getReleaseDate(), savedFilm.getReleaseDate()),
                 () -> Assertions.assertEquals(film.getDuration(), savedFilm.getDuration()),
+                () -> Assertions.assertEquals(film.getGenres(), savedFilm.getGenres()),
+                () -> Assertions.assertEquals(film.getMpa(), savedFilm.getMpa()),
                 () -> Assertions.assertEquals(film1.getName(), savedFilm1.getName()),
                 () -> Assertions.assertEquals(film1.getDescription(), savedFilm1.getDescription()),
                 () -> Assertions.assertEquals(film1.getReleaseDate(), savedFilm1.getReleaseDate()),
-                () -> Assertions.assertEquals(film1.getDuration(), savedFilm1.getDuration())
+                () -> Assertions.assertEquals(film1.getDuration(), savedFilm1.getDuration()),
+                () -> Assertions.assertEquals(film1.getGenres(), savedFilm1.getGenres()),
+                () -> Assertions.assertEquals(film1.getMpa(), savedFilm1.getMpa())
         );
     }
 
@@ -684,5 +707,28 @@ class FilmorateApplicationTests {
                 () -> Assertions.assertEquals(film, films.getFirst()),
                 () -> Assertions.assertEquals(film4, films.getLast())
         );
+    }
+
+    @Test
+    @DisplayName("Проверка POST на фильме с рейтингом не из списка")
+    void testSaveFilmWrongRating() {
+        film.getMpa().setId(10);
+        try {
+            filmController.save(film);
+        } catch (NotFoundException e) {
+            Assertions.assertEquals("Рейтинг с id = 10 не найден", e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("Проверка POST на фильме с жанром не из списка")
+    void testSaveFilmWrongGenre() {
+        Genre genre = new Genre().setId(999).setName("wrong genre");
+        film.getGenres().add(genre);
+        try {
+            filmController.save(film);
+        } catch (NotFoundException e) {
+            Assertions.assertEquals("Жанр с id = 999 не найден", e.getMessage());
+        }
     }
 }
