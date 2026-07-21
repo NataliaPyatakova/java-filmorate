@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.validation.OnUpdate;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 @EqualsAndHashCode(exclude = {"likes"})
@@ -33,6 +34,8 @@ public class Film {
     private int duration; //продолжительность фильма — duration.
     @JsonIgnore
     private Set<Integer> likes = new HashSet<>();
+    private MpaRating mpa;
+    private Set<Genre> genres = new TreeSet<>();
 
     public Integer countLikes() {
         return likes.size();

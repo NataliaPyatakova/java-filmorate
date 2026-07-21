@@ -1,30 +1,32 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private final UserService userService;
+    private final GenreService genreService;
+    private final MpaRatingService mpaRatingService;
 
-    @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.filmStorage = filmStorage;
-        this.userService = userService;
-    }
+    private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     public List<Film> findAll() {
         return filmStorage.findAll();
@@ -33,12 +35,14 @@ public class FilmService {
     public Film save(Film film) {
         log.info("Saving film {}", film);
         validateDate(film);
+        dataEnrichment(film);
         return filmStorage.save(film);
     }
 
     public Film update(Film newFilm) {
         log.info("Updating newFilm {}", newFilm);
         validateDate(newFilm);
+        dataEnrichment(newFilm);
         Film oldFilm = findById(newFilm.getId());
         log.info("Updating OldFilm {}", oldFilm);
         boolean updateName = false;  //TODO поискать решение получше
@@ -91,9 +95,17 @@ public class FilmService {
         filmStorage.deleteAll();
     }
 
-    private static void validateDate(Film film) {
+    private void validateDate(Film film) {
         if (film.getReleaseDate().isBefore(START_RELEASE_DATE)) {
             throw new ValidationException("Дата релиза должна быть не раньше " + START_RELEASE_DATE);
         }
+    }
+
+    public void dataEnrichment(Film film) {
+        film.setMpa(mpaRatingService.findById(film.getMpa().getId()));
+        Set<Genre> genres = film.getGenres().stream()
+                .map(genre -> genreService.findById(genre.getId()))
+                .collect(Collectors.toCollection(TreeSet::new));  //для правильной сортировки
+        film.setGenres(genres);
     }
 }
