@@ -32,6 +32,7 @@ public class UpdateUserDto {
     public boolean hasName() {
         return ! (name == null || name.isBlank());
     }
+
     public boolean hasBirthday() {
         return birthday != null;
     }
