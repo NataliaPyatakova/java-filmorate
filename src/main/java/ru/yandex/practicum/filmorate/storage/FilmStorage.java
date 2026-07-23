@@ -11,7 +11,7 @@ public interface FilmStorage {
 
     Film save(Film film);
 
-    Film update(Film newFilm, Film oldFilm, boolean updateName, boolean updateDescription, boolean updateReleaseDate, boolean updateDuration);
+    Film update(Film newFilm, Film oldFilm);
 
     Optional<Film> findById(Integer id);
 

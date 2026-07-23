@@ -26,17 +26,11 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User update(User newUser, User oldUser, boolean updateName, boolean updateEmail, boolean updateLogin) {
-        if (updateEmail) {
-            oldUser.setEmail(newUser.getEmail());
-            emails.add(newUser.getEmail());
-        }
-        if (updateLogin) {
-            oldUser.setLogin(newUser.getLogin());
-        }
-        if (updateName) {
-            oldUser.setName(newUser.getName());
-        }
+    public User update(User newUser, User oldUser) {
+        oldUser.setEmail(newUser.getEmail());
+        emails.add(newUser.getEmail());
+        oldUser.setLogin(newUser.getLogin());
+        oldUser.setName(newUser.getName());
         oldUser.setBirthday(newUser.getBirthday());
         return oldUser;
     }

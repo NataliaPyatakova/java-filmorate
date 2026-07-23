@@ -12,7 +12,7 @@ public interface UserStorage {
 
     User save(User user);
 
-    User update(User newUser, User oldUser, boolean updateName, boolean updateEmail, boolean updateLogin);
+    User update(User newUser, User oldUser);
 
     Optional<User> findById(Integer id);
 

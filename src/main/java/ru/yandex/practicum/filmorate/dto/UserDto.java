@@ -1,22 +1,17 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"birthday", "friends"})
 @Accessors(chain = true)
-public class User {
+public class UserDto {
 
     private Integer id;
     private String email;
     private String login;
     private String name;
     private LocalDate birthday;
-    private Set<Integer> friends = new HashSet<>();
 }

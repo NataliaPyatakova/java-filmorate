@@ -26,19 +26,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film update(Film newFilm, Film oldFilm, boolean updateName, boolean updateDescription, boolean updateReleaseDate, boolean updateDuration) {
-        if (updateName) {
-            oldFilm.setName(newFilm.getName());
-        }
-        if (updateDescription) {
-            oldFilm.setDescription(newFilm.getDescription());
-        }
-        if (updateReleaseDate) {
-            oldFilm.setReleaseDate(newFilm.getReleaseDate());
-        }
-        if (updateDuration) {
-            oldFilm.setDuration(newFilm.getDuration());
-        }
+    public Film update(Film newFilm, Film oldFilm) {
+        oldFilm.setName(newFilm.getName());
+        oldFilm.setDescription(newFilm.getDescription());
+        oldFilm.setReleaseDate(newFilm.getReleaseDate());
+        oldFilm.setDuration(newFilm.getDuration());
         return oldFilm;
     }
 
