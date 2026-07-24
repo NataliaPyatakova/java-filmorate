@@ -31,6 +31,7 @@ public class UserMapper {
 
     public static User updateUserFields(User oldUser, UpdateUserDto updateUserDto) {
         User newUser = new User();
+        newUser.setId(oldUser.getId());
         if (updateUserDto.hasLogin()) {
             newUser.setLogin(updateUserDto.getLogin());
         } else {
