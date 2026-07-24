@@ -90,10 +90,6 @@ public class UserService {
         return userStorage.findCommonFriends(user, otherUser).stream().map(UserMapper::mapToUserDto).collect(Collectors.toSet());
     }
 
-    public void deleteAll() {
-        userStorage.deleteAll();
-    }
-
     private User findUserById(Integer id) {
         return userStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));

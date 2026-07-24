@@ -85,16 +85,12 @@ public class FilmService {
 
     public List<FilmDto> findMostRated(Integer count) {
         return filmStorage.findAll().stream()
-                .peek(film -> {film.setCountLikes(filmStorage.countLikesByFilmId(film.getId()));})
+                .peek(film -> film.setCountLikes(filmStorage.countLikesByFilmId(film.getId())))
                 .sorted(Comparator.comparing(Film::getCountLikes).reversed())
                 .limit(count)
                 .peek(this::dataEnrichment)
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
-    }
-
-    public void deleteAll() {
-        filmStorage.deleteAll();
     }
 
     private Film findFilmById(Integer id) {

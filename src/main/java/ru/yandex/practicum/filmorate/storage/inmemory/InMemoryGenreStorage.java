@@ -39,13 +39,4 @@ public class InMemoryGenreStorage implements GenreStorage {
     public Set<Genre> findByFilmId(Integer id) {
         return Set.of();
     }
-
-    private Integer getNextId() {
-        int currentMaxId = genres.keySet()
-                .stream()
-                .mapToInt(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
-    }
 }
