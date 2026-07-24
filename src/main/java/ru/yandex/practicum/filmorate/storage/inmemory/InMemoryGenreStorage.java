@@ -1,14 +1,14 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.inmemory;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
+@Qualifier("InMemoryGenreStorage")
 public class InMemoryGenreStorage implements GenreStorage {
 
     private final Map<Integer, Genre> genres = new HashMap<>();
@@ -29,23 +29,15 @@ public class InMemoryGenreStorage implements GenreStorage {
     }
 
     @Override
-    public Genre save(Genre genre) {
-        genre.setId(getNextId());
-        genres.put(genre.getId(), genre);
-        return genre;
-    }
-
-    @Override
-    public Genre update(Genre newGenre, Genre oldGenre) {
-        oldGenre.setName(newGenre.getName());
-        return oldGenre;
-    }
-
-    @Override
     public Optional<Genre> findById(Integer id) {
         return genres.values().stream()
                 .filter(genre -> genre.getId().equals(id))
                 .findFirst();
+    }
+
+    @Override
+    public Set<Genre> findByFilmId(Integer id) {
+        return Set.of();
     }
 
     private Integer getNextId() {

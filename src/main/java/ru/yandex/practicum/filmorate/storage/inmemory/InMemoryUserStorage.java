@@ -1,12 +1,15 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.inmemory;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@Qualifier("InMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Integer, User> users = new HashMap<>();
@@ -26,13 +29,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User update(User newUser, User oldUser) {
-        oldUser.setEmail(newUser.getEmail());
-        emails.add(newUser.getEmail());
-        oldUser.setLogin(newUser.getLogin());
-        oldUser.setName(newUser.getName());
-        oldUser.setBirthday(newUser.getBirthday());
-        return oldUser;
+    public User update(User user) {
+        return user;
     }
 
     @Override

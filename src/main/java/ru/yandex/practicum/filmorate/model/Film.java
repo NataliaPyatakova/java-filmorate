@@ -22,8 +22,5 @@ public class Film {
     private Set<Integer> likes = new HashSet<>();
     private MpaRating mpa;
     private Set<Genre> genres = new TreeSet<>();
-
-    public Integer countLikes() {
-        return likes.size();
-    }
+    private int countLikes = 0;
 }

@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
@@ -23,8 +23,7 @@ public class UserService {
 
     private final UserStorage userStorage;
 
-    @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -51,8 +50,9 @@ public class UserService {
         User oldUser = findUserById(updateUserDto.getId());
         log.debug("Old user for update {}", oldUser);
         validateEmail(updateUserDto.getEmail());
+        //сливаем воедино пришедшие данные и данные в базе-формируем целиком юзера
         User newUser = UserMapper.updateUserFields(oldUser, updateUserDto);
-        User updatedUser = userStorage.update(newUser, oldUser);
+        User updatedUser = userStorage.update(newUser);
         return UserMapper.mapToUserDto(updatedUser);
     }
 

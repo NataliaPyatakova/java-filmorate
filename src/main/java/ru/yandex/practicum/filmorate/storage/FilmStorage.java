@@ -11,7 +11,7 @@ public interface FilmStorage {
 
     Film save(Film film);
 
-    Film update(Film newFilm, Film oldFilm);
+    Film update(Film film);
 
     Optional<Film> findById(Integer id);
 
@@ -20,4 +20,6 @@ public interface FilmStorage {
     void removeLike(Film film, Integer userId);
 
     void deleteAll();
+
+    Integer countLikesByFilmId(Integer id);
 }

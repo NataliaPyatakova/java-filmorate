@@ -4,14 +4,13 @@ import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface GenreStorage {
 
     List<Genre> findAll();
 
-    Genre save(Genre genre);
-
-    Genre update(Genre newGenre, Genre oldGenre);
-
     Optional<Genre> findById(Integer id);
+
+    Set<Genre> findByFilmId(Integer id);
 }

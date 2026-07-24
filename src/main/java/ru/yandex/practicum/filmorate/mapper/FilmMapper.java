@@ -38,6 +38,7 @@ public class FilmMapper {
 
     public static Film updateFilmFields(Film oldFilm, UpdateFilmDto updateFilmDto) {
         Film newFilm = new Film();
+        newFilm.setId(oldFilm.getId());
         if (updateFilmDto.hasName()) {
             newFilm.setName(updateFilmDto.getName());
         } else {
