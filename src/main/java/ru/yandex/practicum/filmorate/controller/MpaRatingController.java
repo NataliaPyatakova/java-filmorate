@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +17,7 @@ import java.util.List;
 @RequestMapping("/mpa")
 @Slf4j
 @RequiredArgsConstructor
+@Validated
 public class MpaRatingController {
 
     private final MpaRatingService mpaRatingService;
@@ -25,7 +28,7 @@ public class MpaRatingController {
     }
 
     @GetMapping("/{id}")
-    public MpaRatingDto findById(@PathVariable("id") Integer id) {
+    public MpaRatingDto findById(@PathVariable("id") @NotNull Integer id) {
         return mpaRatingService.findById(id);
     }
 }

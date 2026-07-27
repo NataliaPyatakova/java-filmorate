@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.MpaRatingDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -13,13 +13,10 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MpaRatingService {
 
     private final MpaRatingStorage mpaRatingStorage;
-
-    public MpaRatingService(@Qualifier("MpaRatingDBStorage") MpaRatingStorage mpaRatingStorage) {
-        this.mpaRatingStorage = mpaRatingStorage;
-    }
 
     public List<MpaRatingDto> findAll() {
         return mpaRatingStorage.findAll().stream().map(MpaRatingMapper::mapToMpaRatingDto).toList();

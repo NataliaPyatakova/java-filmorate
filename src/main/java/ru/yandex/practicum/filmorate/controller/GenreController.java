@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +17,7 @@ import java.util.List;
 @RequestMapping("/genres")
 @Slf4j
 @RequiredArgsConstructor
+@Validated
 public class GenreController {
 
     private final GenreService genreService;
@@ -25,7 +28,7 @@ public class GenreController {
     }
 
     @GetMapping("/{id}")
-    public GenreDto findById(@PathVariable("id") Integer id) {
+    public GenreDto findById(@PathVariable("id") @NotNull Integer id) {
         return genreService.findById(id);
     }
 }

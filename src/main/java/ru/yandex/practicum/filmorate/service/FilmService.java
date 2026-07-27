@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
@@ -9,12 +8,15 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.GenresRelation;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,20 +27,24 @@ public class FilmService {
     private final UserService userService;
     private final GenreService genreService;
     private final MpaRatingService mpaRatingService;
+    private final Map<Integer, MpaRating> mpaRatingList;
 
-    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, UserService userService, GenreService genreService, MpaRatingService mpaRatingService) {
+    private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+
+    public FilmService(FilmStorage filmStorage, UserService userService, GenreService genreService, MpaRatingService mpaRatingService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
         this.genreService = genreService;
         this.mpaRatingService = mpaRatingService;
+        this.mpaRatingList = mpaRatingService.findAll().stream()
+                .map(MpaRatingMapper::mapToMpaRating)
+                .collect(Collectors.toMap(MpaRating::getId, MpaRating -> MpaRating));
     }
 
-    private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-
     public List<FilmDto> findAll() {
-        return filmStorage.findAll().stream()
-                .peek(this::dataEnrichment)
-                .map(FilmMapper::mapToFilmDto).collect(Collectors.toList());
+        List<Film> films = filmStorage.findAll();
+        dataEnrichment(films);
+        return films.stream().map(FilmMapper::mapToFilmDto).toList();
     }
 
     public FilmDto save(NewFilmDto newFilmDto) {
@@ -72,6 +78,7 @@ public class FilmService {
         Film film = findFilmById(id);
         userService.findById(userId);
         filmStorage.addLike(film, userId);
+        dataEnrichment(film);
         return FilmMapper.mapToFilmDto(film);
     }
 
@@ -80,15 +87,18 @@ public class FilmService {
         Film film = findFilmById(id);
         userService.findById(userId);
         filmStorage.removeLike(film, userId);
+        dataEnrichment(film);
         return FilmMapper.mapToFilmDto(film);
     }
 
     public List<FilmDto> findMostRated(Integer count) {
-        return filmStorage.findAll().stream()
+        List<Film> films = filmStorage.findAll().stream()
                 .peek(film -> film.setCountLikes(filmStorage.countLikesByFilmId(film.getId())))
                 .sorted(Comparator.comparing(Film::getCountLikes).reversed())
                 .limit(count)
-                .peek(this::dataEnrichment)
+                .toList();
+        dataEnrichment(films);
+        return films.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
@@ -101,12 +111,26 @@ public class FilmService {
         if (film.getReleaseDate().isBefore(START_RELEASE_DATE)) {
             throw new ValidationException("Дата релиза должна быть не раньше " + START_RELEASE_DATE);
         }
-        mpaRatingService.findMpaRatingById((film.getMpa().getId()));
+        //не трогать - запуск единичный, нужна проверка на существование id
+        mpaRatingService.findById((film.getMpa().getId()));
         film.getGenres().forEach(genre -> genreService.findById(genre.getId()));
     }
 
-    public void dataEnrichment(Film film) {
-        film.setMpa(mpaRatingService.findMpaRatingById((film.getMpa().getId())));
+    private void dataEnrichment(Film film) {
+        film.setMpa(mpaRatingList.get(film.getMpa().getId()));
         film.setGenres(genreService.findByFilmId(film.getId()));
     }
+
+    private void dataEnrichment(List<Film> films) {
+        List<GenresRelation> genreList = genreService.findFilmGenreRelations();
+        Map<Integer, Set<Genre>> genreMap = new HashMap<>();
+        genreList.forEach(genresRelation -> {
+                    Set<Genre> genreSet1 = genreMap.computeIfAbsent(genresRelation.getId(), g -> new TreeSet<>());
+                    genreSet1.add(genresRelation.getGenre());
+                }
+        );
+        films.forEach(film -> film.setMpa(mpaRatingList.get(film.getMpa().getId())));
+        films.forEach(film -> film.setGenres(genreMap.computeIfAbsent(film.getId(), g -> new TreeSet<>())));
+    }
 }
+

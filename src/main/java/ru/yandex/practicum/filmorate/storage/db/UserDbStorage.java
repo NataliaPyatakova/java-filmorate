@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -13,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-@Qualifier("UserDbStorage")
 public class UserDbStorage extends BaseStorage<User> implements UserStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM USERS";
@@ -83,7 +81,7 @@ public class UserDbStorage extends BaseStorage<User> implements UserStorage {
 
     @Override
     public void addFriend(User user, User friend) {
-        insert(INSERT_FRIEND_QUERY,user.getId(),friend.getId());
+        insertRelation(INSERT_FRIEND_QUERY,user.getId(),friend.getId());
     }
 
     @Override

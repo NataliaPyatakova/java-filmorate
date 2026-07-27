@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -16,6 +17,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@Validated
 public class UserController {
 
     private final UserService userService;
@@ -31,7 +33,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserDto findById(@PathVariable("id") Integer id) {
+    public UserDto findById(@PathVariable("id") @NotNull Integer id) {
         return userService.findById(id);
     }
 
@@ -46,22 +48,22 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public UserDto addFriend(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
+    public UserDto addFriend(@PathVariable("id") @NotNull Integer id, @PathVariable("friendId") @NotNull Integer friendId) {
         return userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public UserDto removeFriend(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) {
+    public UserDto removeFriend(@PathVariable("id") @NotNull Integer id, @PathVariable("friendId") @NotNull Integer friendId) {
         return userService.removeFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public List<UserDto> findAllFriends(@PathVariable("id") Integer id) {
+    public List<UserDto> findAllFriends(@PathVariable("id") @NotNull Integer id) {
         return userService.findAllFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Set<UserDto> findCommonFriends(@PathVariable("id") Integer id, @PathVariable("otherId") Integer otherId) {
+    public Set<UserDto> findCommonFriends(@PathVariable("id") @NotNull Integer id, @PathVariable("otherId") @NotNull Integer otherId) {
         return userService.findCommonFriends(id, otherId);
     }
 }

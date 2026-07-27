@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequestMapping("/films")
 @Slf4j
 @RequiredArgsConstructor
+@Validated
 public class FilmController {
 
     private final FilmService filmService;
@@ -25,7 +27,7 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public FilmDto findById(@PathVariable("id") Integer id) {
+    public FilmDto findById(@PathVariable("id") @NotNull Integer id) {
         return filmService.findById(id);
     }
 
@@ -40,12 +42,12 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public FilmDto addLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+    public FilmDto addLike(@PathVariable("id") @NotNull Integer id, @PathVariable("userId") @NotNull Integer userId) {
         return filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public FilmDto removeLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+    public FilmDto removeLike(@PathVariable("id") @NotNull Integer id, @PathVariable("userId") @NotNull Integer userId) {
         return filmService.removeLike(id, userId);
     }
 

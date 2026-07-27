@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.db;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-@Qualifier("FilmDbStorage")
 public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT FILM_ID, " +
@@ -72,7 +70,7 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
                 film.getDuration(),
                 film.getMpa().getId());
         film.setId(id);
-        film.getGenres().forEach(genre ->  insert(INSERT_GENRE_QUERY, film.getId(), genre.getId()));
+        film.getGenres().forEach(genre ->  insertRelation(INSERT_GENRE_QUERY, film.getId(), genre.getId()));
         return film;
     }
 
@@ -90,7 +88,7 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
 
     @Override
     public void addLike(Film film, Integer userId) {
-        insert(INSERT_LIKE_QUERY, film.getId(), userId);
+        insertRelation(INSERT_LIKE_QUERY, film.getId(), userId);
     }
 
     @Override

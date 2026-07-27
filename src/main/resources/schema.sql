@@ -28,10 +28,9 @@ CREATE TABLE IF NOT EXISTS PUBLIC.FILMS
 
 CREATE TABLE IF NOT EXISTS PUBLIC.GENRES_RELATION
 (
-    GENRES_RELATION_ID INTEGER auto_increment,
     FILM_ID            INTEGER not null,
     GENRE_ID           INTEGER not null,
-    constraint GENRES_RELATION_PK primary key (GENRES_RELATION_ID),
+    constraint GENRES_RELATION_PK primary key (FILM_ID, GENRE_ID),
     constraint GENRES_RELATION_FILMS_FK foreign key (FILM_ID) references PUBLIC.FILMS,
     constraint GENRES_RELATION_GENRES_FK foreign key (GENRE_ID) references PUBLIC.GENRES
 );
@@ -51,20 +50,18 @@ CREATE TABLE IF NOT EXISTS PUBLIC.USERS
 
 CREATE TABLE IF NOT EXISTS PUBLIC.FRIENDS_RELATION
 (
-    FRIENDS_RELATION_ID INTEGER auto_increment,
     USER_ID             INTEGER not null,
     FRIEND_ID           INTEGER not null,
-    constraint FRIENDS_RELATION_PK primary key (FRIENDS_RELATION_ID),
+    constraint FRIENDS_RELATION_PK primary key (USER_ID, FRIEND_ID),
     constraint FRIENDS_RELATION_USERS_FRIEND_FK foreign key (FRIEND_ID) references PUBLIC.USERS,
     constraint FRIENDS_RELATION_USERS_USER_FK foreign key (USER_ID) references PUBLIC.USERS
 );
 
 CREATE TABLE IF NOT EXISTS PUBLIC.LIKES_RELATION
 (
-    LIKES_RELATION_ID INTEGER auto_increment,
     FILM_ID           INTEGER not null,
     USER_ID           INTEGER not null,
-    constraint LIKES_RELATION_PK primary key (LIKES_RELATION_ID),
+    constraint LIKES_RELATION_PK primary key (FILM_ID, USER_ID),
     constraint LIKES_RELATION_FILMS_FK foreign key (FILM_ID) references PUBLIC.FILMS,
     constraint LIKES_RELATION_USERS_FK foreign key (USER_ID) references PUBLIC.USERS
 );

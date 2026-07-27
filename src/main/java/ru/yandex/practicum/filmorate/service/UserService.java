@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
@@ -19,13 +19,10 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserStorage userStorage;
-
-    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
 
     public List<UserDto> findAll() {
         return userStorage.findAll().stream().map(UserMapper::mapToUserDto).collect(Collectors.toList());
@@ -63,7 +60,6 @@ public class UserService {
         if (Objects.equals(id, friendId)) {
             throw new ValidationException("Нельзя добавить в друзья самого себя");
         }
-        //добавляем пользователя другу
         userStorage.addFriend(user, friend);
         return UserMapper.mapToUserDto(user);
     }
@@ -72,7 +68,6 @@ public class UserService {
         log.info("Removing friend {} from User {}", friendId, id);
         User user = findUserById(id);
         User friend = findUserById(friendId);
-        //удаляем друга у пользователя
         userStorage.removeFriend(user, friend);
         return UserMapper.mapToUserDto(user);
     }

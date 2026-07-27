@@ -50,6 +50,14 @@ public class BaseStorage<T> {
         }
     }
 
+    protected void insertRelation(String query, Object... params) {
+        int rowsInserted = jdbc.update(query, params);
+
+        if (rowsInserted == 0) {
+            throw new InternalServerException("Не удалось вставить данные");
+        }
+    }
+
     protected void update(String query, Object... params) {
         int rowsUpdated = jdbc.update(query, params);
 
