@@ -1,99 +1,136 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.NewFilmDto;
+import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.GenresRelation;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private final UserService userService;
+    private final GenreService genreService;
+    private final MpaRatingService mpaRatingService;
+    private final Map<Integer, MpaRating> mpaRatingList;
 
-    @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+
+    public FilmService(FilmStorage filmStorage, UserService userService, GenreService genreService, MpaRatingService mpaRatingService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+        this.genreService = genreService;
+        this.mpaRatingService = mpaRatingService;
+        this.mpaRatingList = mpaRatingService.findAll().stream()
+                .map(MpaRatingMapper::mapToMpaRating)
+                .collect(Collectors.toMap(MpaRating::getId, MpaRating -> MpaRating));
     }
 
-    public List<Film> findAll() {
-        return filmStorage.findAll();
+    public List<FilmDto> findAll() {
+        List<Film> films = filmStorage.findAll();
+        dataEnrichment(films);
+        return films.stream().map(FilmMapper::mapToFilmDto).toList();
     }
 
-    public Film save(Film film) {
-        log.info("Saving film {}", film);
-        validateDate(film);
-        return filmStorage.save(film);
+    public FilmDto save(NewFilmDto newFilmDto) {
+        log.info("Saving film {}", newFilmDto);
+        Film film = FilmMapper.mapToFilm(newFilmDto);
+        validate(film);
+        Film newFilm = filmStorage.save(film);
+        dataEnrichment(newFilm);
+        return FilmMapper.mapToFilmDto(newFilm);
     }
 
-    public Film update(Film newFilm) {
-        log.info("Updating newFilm {}", newFilm);
-        validateDate(newFilm);
-        Film oldFilm = findById(newFilm.getId());
+    public FilmDto update(UpdateFilmDto updateFilmDto) {
+        log.info("Updating newFilm {}", updateFilmDto);
+        Film oldFilm = findFilmById(updateFilmDto.getId());
         log.info("Updating OldFilm {}", oldFilm);
-        boolean updateName = false;  //TODO поискать решение получше
-        boolean updateDescription = false;
-        boolean updateReleaseDate = false;
-        boolean updateDuration = false;
-        if (newFilm.getName() != null && !newFilm.getName().isBlank()) { //пустоту разрешаем, но не записываем
-            updateName = true;
-        }
-        if (newFilm.getDescription() != null && !newFilm.getDescription().isBlank()) { //пустоту разрешаем, но не записываем
-            updateDescription = true;
-        }
-        if (newFilm.getReleaseDate() != null) { //пустоту разрешаем, но не записываем
-            updateReleaseDate = true;
-        }
-        if (newFilm.getDuration() != 0) { //пустоту разрешаем, но не записываем
-            updateDuration = true;
-        }
-        return filmStorage.update(newFilm, oldFilm, updateName, updateDescription, updateReleaseDate, updateDuration);
+        Film newFilm = FilmMapper.updateFilmFields(oldFilm, updateFilmDto);
+        validate(newFilm);
+        dataEnrichment(newFilm);
+        Film updatedFilm = filmStorage.update(newFilm);
+        return FilmMapper.mapToFilmDto(updatedFilm);
     }
 
-    public Film findById(Integer id) {
-        return filmStorage.findById(id).orElseThrow(() -> new NotFoundException("Фильм с id = " + id + " не найден"));
+    public FilmDto findById(Integer id) {
+        Film film = findFilmById(id);
+        dataEnrichment(film);
+        return FilmMapper.mapToFilmDto(film);
     }
 
-    public Film addLike(Integer id, Integer userId) {
+    public FilmDto addLike(Integer id, Integer userId) {
         log.info("Adding like from User {} to Film {}", userId, id);
-        Film film = findById(id);
+        Film film = findFilmById(id);
         userService.findById(userId);
         filmStorage.addLike(film, userId);
-        return film;
+        dataEnrichment(film);
+        return FilmMapper.mapToFilmDto(film);
     }
 
-    public Film removeLike(Integer id, Integer userId) {
+    public FilmDto removeLike(Integer id, Integer userId) {
         log.info("Removing like from User {} to Film {}", userId, id);
-        Film film = findById(id);
+        Film film = findFilmById(id);
         userService.findById(userId);
         filmStorage.removeLike(film, userId);
-        return film;
+        dataEnrichment(film);
+        return FilmMapper.mapToFilmDto(film);
     }
 
-    public List<Film> findMostRated(Integer count) {
-        return filmStorage.findAll().stream()
-                .sorted(Comparator.comparing(Film::countLikes).reversed())
+    public List<FilmDto> findMostRated(Integer count) {
+        List<Film> films = filmStorage.findAll().stream()
+                .peek(film -> film.setCountLikes(filmStorage.countLikesByFilmId(film.getId())))
+                .sorted(Comparator.comparing(Film::getCountLikes).reversed())
                 .limit(count)
+                .toList();
+        dataEnrichment(films);
+        return films.stream()
+                .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
 
-    public void deleteAll() {
-        filmStorage.deleteAll();
+    private Film findFilmById(Integer id) {
+        return filmStorage.findById(id).orElseThrow(() -> new NotFoundException("Фильм с id = " + id + " не найден"));
     }
 
-    private static void validateDate(Film film) {
+    private void validate(Film film) {
         if (film.getReleaseDate().isBefore(START_RELEASE_DATE)) {
             throw new ValidationException("Дата релиза должна быть не раньше " + START_RELEASE_DATE);
         }
+        //не трогать - запуск единичный, нужна проверка на существование id
+        mpaRatingService.findById((film.getMpa().getId()));
+        film.getGenres().forEach(genre -> genreService.findById(genre.getId()));
+    }
+
+    private void dataEnrichment(Film film) {
+        film.setMpa(mpaRatingList.get(film.getMpa().getId()));
+        film.setGenres(genreService.findByFilmId(film.getId()));
+    }
+
+    private void dataEnrichment(List<Film> films) {
+        List<GenresRelation> genreList = genreService.findFilmGenreRelations();
+        Map<Integer, Set<Genre>> genreMap = new HashMap<>();
+        genreList.forEach(genresRelation -> {
+                    Set<Genre> genreSet1 = genreMap.computeIfAbsent(genresRelation.getId(), g -> new TreeSet<>());
+                    genreSet1.add(genresRelation.getGenre());
+                }
+        );
+        films.forEach(film -> film.setMpa(mpaRatingList.get(film.getMpa().getId())));
+        films.forEach(film -> film.setGenres(genreMap.computeIfAbsent(film.getId(), g -> new TreeSet<>())));
     }
 }
+
