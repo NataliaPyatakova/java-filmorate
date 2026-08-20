@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
@@ -41,11 +43,17 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
                                                     "RATING_ID = ? " +
                                                     "WHERE FILM_ID = ?";
     private static final String DELETE_ALL_QUERY = "DELETE FROM FILMS";
-    private static final String INSERT_LIKE_QUERY = "INSERT INTO LIKES_RELATION" +
-                                                    "(FILM_ID,USER_ID) " +
-                                                    "VALUES (?, ?)";
-    private static final String DELETE_LIKE_QUERY = "DELETE FROM LIKES_RELATION WHERE FILM_ID = ? AND USER_ID = ?";
-    private static final String COUNT_LIKE_QUERY = "SELECT COUNT(DISTINCT USER_ID) AS COUNT_LIKES FROM LIKES_RELATION WHERE FILM_ID = ?";
+
+    private static final String FIND_BY_IDS_QUERY = """
+            SELECT f.FILM_ID,
+                   f.FILM_NAME,
+                   f.DESCRIPTION,
+                   f.RELEASE_DATE,
+                   f.DURATION,
+                   f.RATING_ID
+            FROM FILMS f
+            WHERE f.FILM_ID IN (%s)
+            """;
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -87,22 +95,12 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
     }
 
     @Override
-    public void addLike(Film film, Integer userId) {
-        insertRelation(INSERT_LIKE_QUERY, film.getId(), userId);
-    }
-
-    @Override
-    public void removeLike(Film film, Integer userId) {
-        deleteByParam(DELETE_LIKE_QUERY, film.getId(), userId);
-    }
-
-    @Override
     public void deleteAll() {
         delete(DELETE_ALL_QUERY);
     }
 
     @Override
-    public Integer countLikesByFilmId(Integer id) {
-        return count(COUNT_LIKE_QUERY, id);
+    public List<Film> getByIds(Set<Integer> filmIds) {
+        return findMany(FIND_BY_IDS_QUERY.formatted(placeholder(filmIds.size())), filmIds.toArray());
     }
 }

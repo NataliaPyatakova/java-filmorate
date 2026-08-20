@@ -9,11 +9,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.GenresRelation;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -24,21 +22,27 @@ import java.util.stream.Collectors;
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private final UserService userService;
+    private final UserStorage userStorage;
     private final GenreService genreService;
     private final MpaRatingService mpaRatingService;
     private final Map<Integer, MpaRating> mpaRatingList;
+    private final LikesRelationService likesRelationService;
 
     private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
-    public FilmService(FilmStorage filmStorage, UserService userService, GenreService genreService, MpaRatingService mpaRatingService) {
+    public FilmService(FilmStorage filmStorage,
+                       UserStorage userStorage,
+                       GenreService genreService,
+                       MpaRatingService mpaRatingService,
+                       LikesRelationService likesRelationService) {
         this.filmStorage = filmStorage;
-        this.userService = userService;
+        this.userStorage = userStorage;
         this.genreService = genreService;
         this.mpaRatingService = mpaRatingService;
         this.mpaRatingList = mpaRatingService.findAll().stream()
                 .map(MpaRatingMapper::mapToMpaRating)
                 .collect(Collectors.toMap(MpaRating::getId, MpaRating -> MpaRating));
+        this.likesRelationService = likesRelationService;
     }
 
     public List<FilmDto> findAll() {
@@ -76,8 +80,8 @@ public class FilmService {
     public FilmDto addLike(Integer id, Integer userId) {
         log.info("Adding like from User {} to Film {}", userId, id);
         Film film = findFilmById(id);
-        userService.findById(userId);
-        filmStorage.addLike(film, userId);
+        userStorage.findById(id).orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));
+        likesRelationService.addLike(film, userId);
         dataEnrichment(film);
         return FilmMapper.mapToFilmDto(film);
     }
@@ -85,15 +89,15 @@ public class FilmService {
     public FilmDto removeLike(Integer id, Integer userId) {
         log.info("Removing like from User {} to Film {}", userId, id);
         Film film = findFilmById(id);
-        userService.findById(userId);
-        filmStorage.removeLike(film, userId);
+        userStorage.findById(id).orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));
+        likesRelationService.removeLike(film, userId);
         dataEnrichment(film);
         return FilmMapper.mapToFilmDto(film);
     }
 
     public List<FilmDto> findMostRated(Integer count) {
         List<Film> films = filmStorage.findAll().stream()
-                .peek(film -> film.setCountLikes(filmStorage.countLikesByFilmId(film.getId())))
+                .peek(film -> film.setCountLikes(likesRelationService.countLikesByFilmId(film.getId())))
                 .sorted(Comparator.comparing(Film::getCountLikes).reversed())
                 .limit(count)
                 .toList();
@@ -101,6 +105,12 @@ public class FilmService {
         return films.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
+    }
+
+    public List<FilmDto> getByIds(Set<Integer> filmIds) {
+        List<Film> films = filmStorage.getByIds(filmIds);
+        dataEnrichment(films);
+        return films.stream().map(FilmMapper::mapToFilmDto).toList();
     }
 
     private Film findFilmById(Integer id) {
