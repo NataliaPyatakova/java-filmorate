@@ -113,6 +113,11 @@ public class FilmService {
         return films.stream().map(FilmMapper::mapToFilmDto).toList();
     }
 
+    public void deleteFilm(Integer id) {
+        log.info("Deleting film {}", id);
+        filmStorage.deleteById(id);
+    }
+
     private Film findFilmById(Integer id) {
         return filmStorage.findById(id).orElseThrow(() -> new NotFoundException("Фильм с id = " + id + " не найден"));
     }

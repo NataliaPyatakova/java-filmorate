@@ -38,6 +38,7 @@ public class UserDbStorage extends BaseStorage<User> implements UserStorage {
                                                             "AND FR.FRIEND_ID IN (SELECT FRO.FRIEND_ID" +
                                                             "                       FROM FRIENDS_RELATION FRO " +
                                                             "                      WHERE FRO.USER_ID = ?)";
+    private static final String DELETE_USER_QUERY = "DELETE FROM USERS WHERE USER_ID = ?";
 
     public UserDbStorage(JdbcTemplate jdbc, RowMapper<User> mapper) {
         super(jdbc, mapper);
@@ -109,5 +110,10 @@ public class UserDbStorage extends BaseStorage<User> implements UserStorage {
     public boolean existEmail(String email) {
         Optional<User> user = findOne(FIND_BY_EMAIL_QUERY, email);
         return user.isPresent();
+    }
+
+    @Override
+    public void deleteById(Integer id) {
+        deleteByParam(DELETE_USER_QUERY, id);
     }
 }

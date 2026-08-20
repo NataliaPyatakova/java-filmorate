@@ -53,6 +53,7 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
             FROM FILMS f
             WHERE f.FILM_ID IN (%s)
             """;
+    private static final String DELETE_FILM_QUERY = "DELETE FROM FILMS WHERE FILM_ID = ?";
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -101,5 +102,10 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
     @Override
     public List<Film> getByIds(Set<Integer> filmIds) {
         return findMany(FIND_BY_IDS_QUERY.formatted(placeholder(filmIds.size())), filmIds.toArray());
+    }
+
+    @Override
+    public void deleteById(Integer id) {
+        deleteByParam(DELETE_FILM_QUERY, id);
     }
 }
