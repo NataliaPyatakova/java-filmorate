@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class MpaRating implements Comparable<MpaRating>{
+public class MpaRating implements Comparable<MpaRating> {
 
     @NotNull
     private Integer id;
