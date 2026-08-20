@@ -9,10 +9,8 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
