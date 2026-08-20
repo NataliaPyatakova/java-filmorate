@@ -27,5 +27,7 @@ public interface UserStorage {
     void deleteAll();
 
     boolean existEmail(String email);
+
+    void deleteById(Integer id);
 }
 

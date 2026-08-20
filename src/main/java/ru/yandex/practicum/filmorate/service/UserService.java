@@ -87,6 +87,11 @@ public class UserService {
         return userStorage.findCommonFriends(user, otherUser).stream().map(UserMapper::mapToUserDto).collect(Collectors.toSet());
     }
 
+    public void deleteUser(Integer userId) {
+        userStorage.deleteById(userId);
+        log.info("Удаление пользователя с id = {}", userId);
+    }
+
     public List<FilmDto> getRecommendations(Integer userId) {
         log.info("Поиск рекомендация по фильмам для userId = {} ", userId);
         List<FilmDto> recommendedFilms = new ArrayList<>();

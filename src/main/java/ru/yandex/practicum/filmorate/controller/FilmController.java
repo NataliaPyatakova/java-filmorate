@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
@@ -54,6 +55,12 @@ public class FilmController {
     @GetMapping("/popular")
     public List<FilmDto> findMostRated(@RequestParam(value = "count", defaultValue = "10") int count) {
         return filmService.findMostRated(count);
+    }
+
+    @DeleteMapping("/{filmId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable Integer filmId) {
+        filmService.deleteFilm(filmId);
     }
 }
 
