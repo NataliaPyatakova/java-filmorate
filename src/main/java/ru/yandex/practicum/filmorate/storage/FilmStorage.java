@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface FilmStorage {
 
@@ -15,11 +16,7 @@ public interface FilmStorage {
 
     Optional<Film> findById(Integer id);
 
-    void addLike(Film film, Integer userId);
-
-    void removeLike(Film film, Integer userId);
-
     void deleteAll();
 
-    Integer countLikesByFilmId(Integer id);
+    List<Film> getByIds(Set<Integer> filmIds);
 }

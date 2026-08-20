@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.MpaRatingStorage;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -19,7 +20,10 @@ public class MpaRatingService {
     private final MpaRatingStorage mpaRatingStorage;
 
     public List<MpaRatingDto> findAll() {
-        return mpaRatingStorage.findAll().stream().map(MpaRatingMapper::mapToMpaRatingDto).toList();
+        return mpaRatingStorage.findAll()
+                .stream()
+                .sorted(Comparator.comparing(MpaRating::getId))
+                .map(MpaRatingMapper::mapToMpaRatingDto).toList();
     }
 
     public MpaRatingDto findById(Integer id) {

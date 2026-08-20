@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
@@ -65,5 +66,10 @@ public class UserController {
     @GetMapping("/{id}/friends/common/{otherId}")
     public Set<UserDto> findCommonFriends(@PathVariable("id") @NotNull Integer id, @PathVariable("otherId") @NotNull Integer otherId) {
         return userService.findCommonFriends(id, otherId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDto> getRecommendations(@PathVariable Integer id) {
+        return userService.getRecommendations(id);
     }
 }
