@@ -7,6 +7,8 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewUserDto;
 import ru.yandex.practicum.filmorate.dto.UpdateUserDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.enumeration.EventType;
+import ru.yandex.practicum.filmorate.enumeration.Operation;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
@@ -25,6 +27,7 @@ public class UserService {
     private final UserStorage userStorage;
     private final FilmService filmService;
     private final LikesRelationService likesRelationService;
+    private final EventService eventService;
 
     public List<UserDto> findAll() {
         return userStorage.findAll().stream().map(UserMapper::mapToUserDto).collect(Collectors.toList());
@@ -55,28 +58,30 @@ public class UserService {
         return UserMapper.mapToUserDto(updatedUser);
     }
 
-    public UserDto addFriend(Integer id, Integer friendId) {
-        log.info("Adding friend {} to User {}", friendId, id);
-        User user = findUserById(id);
+    public UserDto addFriend(Integer userId, Integer friendId) {
+        log.info("Adding friend {} to User {}", friendId, userId);
+        User user = findUserById(userId);
         User friend = findUserById(friendId);
-        if (Objects.equals(id, friendId)) {
+        if (Objects.equals(userId, friendId)) {
             throw new ValidationException("Нельзя добавить в друзья самого себя");
         }
         userStorage.addFriend(user, friend);
+        eventService.createEvent(userId, EventType.FRIEND, Operation.ADD, friendId);
         return UserMapper.mapToUserDto(user);
     }
 
-    public UserDto removeFriend(Integer id, Integer friendId) {
-        log.info("Removing friend {} from User {}", friendId, id);
-        User user = findUserById(id);
+    public UserDto removeFriend(Integer userId, Integer friendId) {
+        log.info("Removing friend {} from User {}", friendId, userId);
+        User user = findUserById(userId);
         User friend = findUserById(friendId);
         userStorage.removeFriend(user, friend);
+        eventService.createEvent(userId, EventType.FRIEND, Operation.REMOVE, friendId);
         return UserMapper.mapToUserDto(user);
     }
 
-    public List<UserDto> findAllFriends(Integer id) {
-        log.info("Finding all friends from User {}", id);
-        User user = findUserById(id);
+    public List<UserDto> findAllFriends(Integer userId) {
+        log.info("Finding all friends from User {}", userId);
+        User user = findUserById(userId);
         return userStorage.findAllFriends(user).stream().map(UserMapper::mapToUserDto).collect(Collectors.toList());
     }
 
