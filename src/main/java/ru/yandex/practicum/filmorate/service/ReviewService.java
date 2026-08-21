@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.NewReviewDto;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
@@ -10,29 +10,27 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
+import ru.yandex.practicum.filmorate.enumeration.EventType;
+import ru.yandex.practicum.filmorate.enumeration.Operation;
 
 import java.util.List;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
 
     private final ReviewStorage reviewStorage;
     private final FilmService filmService;
     private final UserService userService;
-
-    @Autowired
-    public ReviewService(ReviewStorage reviewStorage, FilmService filmService, UserService userService) {
-        this.reviewStorage = reviewStorage;
-        this.filmService = filmService;
-        this.userService = userService;
-    }
+    private final EventService eventService;
 
     public ReviewDto create(NewReviewDto newReviewDto) {
         log.info("Сохраняем review {}", newReviewDto);
         filmService.findById(newReviewDto.getFilmId());
         userService.findById(newReviewDto.getUserId());
         Review newReview = reviewStorage.create(ReviewMapper.mapToReview(newReviewDto));
+        eventService.createEvent(newReview.getUserId(), EventType.REVIEW, Operation.ADD, newReview.getReviewId());
         return ReviewMapper.mapToReviewDto(newReview);
     }
 
@@ -42,10 +40,13 @@ public class ReviewService {
         filmService.findById(updateReviewDto.getFilmId());
         userService.findById(updateReviewDto.getUserId());
         Review newReview = reviewStorage.update(ReviewMapper.mapToReview(updateReviewDto));
+        eventService.createEvent(newReview.getUserId(), EventType.REVIEW, Operation.UPDATE, newReview.getReviewId());
         return ReviewMapper.mapToReviewDto(newReview);
     }
 
     public void delete(Integer reviewId) {
+        ReviewDto review = findById(reviewId);
+        eventService.createEvent(review.getUserId(), EventType.REVIEW, Operation.REMOVE, reviewId);
         reviewStorage.delete(reviewId);
     }
 

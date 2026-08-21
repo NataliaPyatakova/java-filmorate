@@ -12,6 +12,8 @@ import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.enumeration.EventType;
+import ru.yandex.practicum.filmorate.enumeration.Operation;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -27,6 +29,7 @@ public class FilmService {
     private final MpaRatingService mpaRatingService;
     private final Map<Integer, MpaRating> mpaRatingList;
     private final LikesRelationService likesRelationService;
+    private final EventService eventService;
 
     private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
@@ -34,7 +37,8 @@ public class FilmService {
                        UserStorage userStorage,
                        GenreService genreService,
                        MpaRatingService mpaRatingService,
-                       LikesRelationService likesRelationService) {
+                       LikesRelationService likesRelationService,
+                       EventService eventService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.genreService = genreService;
@@ -43,6 +47,7 @@ public class FilmService {
                 .map(MpaRatingMapper::mapToMpaRating)
                 .collect(Collectors.toMap(MpaRating::getId, MpaRating -> MpaRating));
         this.likesRelationService = likesRelationService;
+        this.eventService = eventService;
     }
 
     public List<FilmDto> findAll() {
@@ -83,6 +88,7 @@ public class FilmService {
         userStorage.findById(id).orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));
         likesRelationService.addLike(film, userId);
         dataEnrichment(film);
+        eventService.createEvent(userId, EventType.LIKE, Operation.ADD, id);
         return FilmMapper.mapToFilmDto(film);
     }
 
@@ -92,6 +98,7 @@ public class FilmService {
         userStorage.findById(id).orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));
         likesRelationService.removeLike(film, userId);
         dataEnrichment(film);
+        eventService.createEvent(userId, EventType.LIKE, Operation.REMOVE, id);
         return FilmMapper.mapToFilmDto(film);
     }
 
