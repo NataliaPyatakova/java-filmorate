@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -53,8 +54,10 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> findMostRated(@RequestParam(value = "count", defaultValue = "10") int count) {
-        return filmService.findMostRated(count);
+    public List<FilmDto> findMostRated(@RequestParam(value = "count", defaultValue = "10") @Positive int count,
+                                       @RequestParam(required = false)@Positive Integer genreId,
+                                       @RequestParam(required = false) Integer year) {
+        return filmService.findMostRated(count, genreId, year);
     }
 
     @DeleteMapping("/{filmId}")

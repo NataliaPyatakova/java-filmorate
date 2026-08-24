@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,16 +45,32 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
     private static final String DELETE_ALL_QUERY = "DELETE FROM FILMS";
 
     private static final String FIND_BY_IDS_QUERY = """
-            SELECT f.FILM_ID,
-                   f.FILM_NAME,
-                   f.DESCRIPTION,
-                   f.RELEASE_DATE,
-                   f.DURATION,
-                   f.RATING_ID
-            FROM FILMS f
-            WHERE f.FILM_ID IN (%s)
-            """;
+                                                    SELECT f.FILM_ID,
+                                                    f.FILM_NAME,
+                                                    f.DESCRIPTION,
+                                                    f.RELEASE_DATE,
+                                                    f.DURATION,
+                                                    f.RATING_ID
+                                                    FROM FILMS f
+                                                    WHERE f.FILM_ID IN (%s)
+                                                    """;
     private static final String DELETE_FILM_QUERY = "DELETE FROM FILMS WHERE FILM_ID = ?";
+    private static final String GET_POPULAR_QUERY = """
+                                                    SELECT f.FILM_ID,
+                                                    f.FILM_NAME,
+                                                    f.DESCRIPTION,
+                                                    f.RELEASE_DATE,
+                                                    f.DURATION,
+                                                    f.RATING_ID,
+                                                    COUNT(DISTINCT lr.USER_ID) AS likes
+                                                    FROM FILMS f
+                                                    LEFT JOIN LIKES_RELATION     lr ON lr.FILM_ID = f.FILM_ID
+                                                    LEFT JOIN GENRES_RELATION as gr ON gr.FILM_ID = f.FILM_ID
+                                                    WHERE %s
+                                                    GROUP BY f.FILM_ID
+                                                    ORDER BY likes DESC, f.FILM_ID
+                                                    LIMIT ?
+                                                    """;
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -107,5 +124,24 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
     @Override
     public void deleteById(Integer id) {
         deleteByParam(DELETE_FILM_QUERY, id);
+    }
+
+    @Override
+    public List<Film> getPopular(int count, Integer genreId, Integer year) {
+        List<String> condition = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        if (genreId != null) {
+            condition.add("gr.GENRE_ID = ?");
+            params.add(genreId);
+        }
+        if (year != null) {
+            condition.add("EXTRACT(YEAR FROM f.RELEASE_DATE) = ?");
+            params.add(year);
+        }
+        params.add(count);
+        //"5=5" так как форматирование требует чтобы это не было пустым
+        String where = condition.isEmpty() ? "5=5" : String.join(" AND ", condition);
+        String finalQuery = GET_POPULAR_QUERY.formatted(where);
+        return findMany(finalQuery,params.toArray());
     }
 }
