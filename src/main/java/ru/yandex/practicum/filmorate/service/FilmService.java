@@ -5,15 +5,18 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
+import ru.yandex.practicum.filmorate.enumeration.EventType;
+import ru.yandex.practicum.filmorate.enumeration.Operation;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.GenresRelation;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.enumeration.EventType;
-import ru.yandex.practicum.filmorate.enumeration.Operation;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -102,12 +105,15 @@ public class FilmService {
         return FilmMapper.mapToFilmDto(film);
     }
 
-    public List<FilmDto> findMostRated(Integer count) {
-        List<Film> films = filmStorage.findAll().stream()
-                .peek(film -> film.setCountLikes(likesRelationService.countLikesByFilmId(film.getId())))
-                .sorted(Comparator.comparing(Film::getCountLikes).reversed())
-                .limit(count)
-                .toList();
+    public List<FilmDto> findMostRated(Integer count, Integer genreId, Integer year) {
+        log.info("findMostRated count {}, genreId {}, year {}", count, genreId, year);
+        if (year != null && year < START_RELEASE_DATE.getYear()) {
+            throw new ValidationException("Год не может быть раньше " + START_RELEASE_DATE.getYear());
+        }
+        if (genreId != null && genreId < 0) {
+            mpaRatingService.findMpaRatingById(genreId);
+        }
+        List<Film> films = filmStorage.getPopular(count, genreId, year);
         dataEnrichment(films);
         return films.stream()
                 .map(FilmMapper::mapToFilmDto)

@@ -14,13 +14,17 @@ public class GenreDbStorage extends BaseStorage<Genre> implements GenreStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT GENRE_ID, GENRE_NAME FROM GENRES";
     private static final String FIND_BY_ID_QUERY = "SELECT GENRE_ID, GENRE_NAME FROM GENRES WHERE GENRE_ID = ?";
-    private static final String FIND_FILM_GENRES_ID_QUERY = "SELECT DISTINCT G.GENRE_ID, G.GENRE_NAME " +
-                                                            "FROM GENRES_RELATION GR " +
-                                                            "JOIN GENRES G ON G.GENRE_ID = GR.GENRE_ID " +
-                                                            "WHERE GR.FILM_ID = ?";
-    private static final String FIND_ALL_FILM_GENRES_QUERY = "SELECT DISTINCT GR.FILM_ID, G.GENRE_ID, G.GENRE_NAME " +
-                                                             "FROM GENRES_RELATION GR " +
-                                                             "JOIN GENRES G ON G.GENRE_ID = GR.GENRE_ID ";
+    private static final String FIND_FILM_GENRES_ID_QUERY = """
+                                                            SELECT DISTINCT G.GENRE_ID, G.GENRE_NAME
+                                                            FROM GENRES_RELATION GR
+                                                            JOIN GENRES G ON G.GENRE_ID = GR.GENRE_ID
+                                                            WHERE GR.FILM_ID = ?
+                                                            """;
+    private static final String FIND_ALL_FILM_GENRES_QUERY = """
+                                                             SELECT DISTINCT GR.FILM_ID, G.GENRE_ID, G.GENRE_NAME
+                                                             FROM GENRES_RELATION GR
+                                                             JOIN GENRES G ON G.GENRE_ID = GR.GENRE_ID
+                                                             """;
     private final RowMapper<GenresRelation> genresRelationRowMapper;
 
     public GenreDbStorage(JdbcTemplate jdbc, RowMapper<Genre> mapper, RowMapper<GenresRelation> genresRelationRowMapper) {
