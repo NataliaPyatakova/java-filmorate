@@ -88,7 +88,7 @@ public class FilmService {
     public FilmDto addLike(Integer id, Integer userId) {
         log.info("Adding like from User {} to Film {}", userId, id);
         Film film = findFilmById(id);
-        userStorage.findById(id).orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));
+        checkUserExist(id);
         likesRelationService.addLike(film, userId);
         dataEnrichment(film);
         eventService.createEvent(userId, EventType.LIKE, Operation.ADD, id);
@@ -98,7 +98,7 @@ public class FilmService {
     public FilmDto removeLike(Integer id, Integer userId) {
         log.info("Removing like from User {} to Film {}", userId, id);
         Film film = findFilmById(id);
-        userStorage.findById(id).orElseThrow(() -> new NotFoundException("Пользователь с id = " + id + " не найден"));
+        checkUserExist(id);
         likesRelationService.removeLike(film, userId);
         dataEnrichment(film);
         eventService.createEvent(userId, EventType.LIKE, Operation.REMOVE, id);
@@ -129,6 +129,18 @@ public class FilmService {
     public void deleteFilm(Integer id) {
         log.info("Deleting film {}", id);
         filmStorage.deleteById(id);
+    }
+
+    public List<FilmDto> getCommonFilms(Integer userId, Integer friendId) {
+        checkUserExist(userId);
+        checkUserExist(friendId);
+        List<Film> films = filmStorage.getCommonFilms(userId, friendId);
+        dataEnrichment(films);
+        return films.stream().map(FilmMapper::mapToFilmDto).toList();
+    }
+
+    private void checkUserExist(Integer userId) {
+        userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
     }
 
     private Film findFilmById(Integer id) {

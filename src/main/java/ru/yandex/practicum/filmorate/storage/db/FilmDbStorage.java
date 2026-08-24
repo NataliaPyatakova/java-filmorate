@@ -14,36 +14,45 @@ import java.util.Set;
 @Component
 public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
 
-    private static final String FIND_ALL_QUERY = "SELECT FILM_ID, " +
-                                                 "FILM_NAME, " +
-                                                 "DESCRIPTION, " +
-                                                 "RELEASE_DATE, " +
-                                                 "DURATION, " +
-                                                 "RATING_ID " +
-                                                 "FROM FILMS";
-    private static final String FIND_BY_ID_QUERY = "SELECT FILM_ID, " +
-                                                   "FILM_NAME, " +
-                                                   "DESCRIPTION, " +
-                                                   "RELEASE_DATE, " +
-                                                   "DURATION, " +
-                                                   "RATING_ID " +
-                                                   "FROM FILMS " +
-                                                   "WHERE FILM_ID = ?";
-    private static final String INSERT_FILM_QUERY = "INSERT INTO FILMS" +
-                                                    "(FILM_NAME,DESCRIPTION,RELEASE_DATE,DURATION,RATING_ID) " +
-                                                    "VALUES (?, ?, ?, ?, ?)";
-    private static final String INSERT_GENRE_QUERY = "INSERT INTO GENRES_RELATION" +
-                                                     "(FILM_ID,GENRE_ID) " +
-                                                     "VALUES (?, ?)";
-    private static final String UPDATE_FILM_QUERY = "UPDATE FILMS " +
-                                                    "SET FILM_NAME = ?, " +
-                                                    "DESCRIPTION = ?, " +
-                                                    "RELEASE_DATE = ?, " +
-                                                    "DURATION = ?, " +
-                                                    "RATING_ID = ? " +
-                                                    "WHERE FILM_ID = ?";
+    private static final String FIND_ALL_QUERY = """
+                                                 SELECT FILM_ID,
+                                                 FILM_NAME,
+                                                 DESCRIPTION,
+                                                 RELEASE_DATE,
+                                                 DURATION,
+                                                 RATING_ID
+                                                 FROM FILMS
+                                                 """;
+    private static final String FIND_BY_ID_QUERY = """
+                                                   SELECT FILM_ID,
+                                                   FILM_NAME,
+                                                   DESCRIPTION,
+                                                   RELEASE_DATE,
+                                                   DURATION,
+                                                   RATING_ID
+                                                   FROM FILMS
+                                                   WHERE FILM_ID = ?
+                                                   """;
+    private static final String INSERT_FILM_QUERY = """
+                                                    INSERT INTO FILMS
+                                                    (FILM_NAME,DESCRIPTION,RELEASE_DATE,DURATION,RATING_ID)
+                                                    VALUES (?, ?, ?, ?, ?)
+                                                    """;
+    private static final String INSERT_GENRE_QUERY = """
+                                                     INSERT INTO GENRES_RELATION
+                                                     (FILM_ID,GENRE_ID)
+                                                     VALUES (?, ?)
+                                                     """;
+    private static final String UPDATE_FILM_QUERY = """
+                                                    UPDATE FILMS
+                                                    SET FILM_NAME = ?,
+                                                    DESCRIPTION = ?,
+                                                    RELEASE_DATE = ?,
+                                                    DURATION = ?,
+                                                    RATING_ID = ?
+                                                    WHERE FILM_ID = ?
+                                                    """;
     private static final String DELETE_ALL_QUERY = "DELETE FROM FILMS";
-
     private static final String FIND_BY_IDS_QUERY = """
                                                     SELECT f.FILM_ID,
                                                     f.FILM_NAME,
@@ -71,6 +80,21 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
                                                     ORDER BY likes DESC, f.FILM_ID
                                                     LIMIT ?
                                                     """;
+    private static final String GET_COMMON_FILMS_QUERY = """
+                                                   SELECT f.FILM_ID,
+                                                   f.FILM_NAME,
+                                                   f.DESCRIPTION,
+                                                   f.RELEASE_DATE,
+                                                   f.DURATION,
+                                                   f.RATING_ID,
+                                                   COUNT(fl_all.USER_ID) AS likes
+                                                   FROM FILMS f
+                                                   JOIN LIKES_RELATION lr1 ON lr1.FILM_ID = f.FILM_ID AND lr1.USER_ID = ?
+                                                   JOIN LIKES_RELATION lr2 ON lr2.FILM_ID = f.FILM_ID AND lr2.USER_ID = ?
+                                                   JOIN LIKES_RELATION fl_all ON fl_all.FILM_ID = f.FILM_ID
+                                                   GROUP BY f.FILM_ID
+                                                   ORDER BY likes DESC;
+                                                   """;
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -143,5 +167,10 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
         String where = condition.isEmpty() ? "5=5" : String.join(" AND ", condition);
         String finalQuery = GET_POPULAR_QUERY.formatted(where);
         return findMany(finalQuery,params.toArray());
+    }
+
+    @Override
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        return findMany(GET_COMMON_FILMS_QUERY, userId, friendId);
     }
 }
