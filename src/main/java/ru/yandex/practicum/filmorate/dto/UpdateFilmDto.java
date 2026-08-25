@@ -21,6 +21,7 @@ public class UpdateFilmDto {
     private int duration;
     private MpaRatingDto mpa;
     private Set<GenreDto> genres;
+    private Set<DirectorDto> directors;
 
     public boolean hasName() {
         return !(name == null || name.isBlank());
@@ -44,5 +45,9 @@ public class UpdateFilmDto {
 
     public boolean hasGenres() {
         return !(genres == null);
+    }
+
+    public boolean hasDirectors() {
+        return !(directors == null);
     }
 }

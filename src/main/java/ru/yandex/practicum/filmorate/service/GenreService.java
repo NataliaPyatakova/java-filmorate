@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.GenresRelation;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -20,9 +21,11 @@ public class GenreService {
 
     private final GenreStorage genreStorage;
 
-
     public List<GenreDto> findAll() {
-        return genreStorage.findAll().stream().map(GenreMapper::mapToGenreDto).toList();
+        return genreStorage.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Genre::getId))
+                .map(GenreMapper::mapToGenreDto).toList();
     }
 
     public GenreDto findById(Integer id) {

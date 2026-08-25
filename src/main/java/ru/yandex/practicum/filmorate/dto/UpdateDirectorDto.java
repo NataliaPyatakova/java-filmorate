@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,15 +7,10 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class MpaRating implements Comparable<MpaRating> {
+public class UpdateDirectorDto {
 
     @NotNull
     private Integer id;
-    @NotBlank
+    @NotBlank(message = "Имя не может быть пустым")
     private String name;
-
-    @Override
-    public int compareTo(MpaRating o) {
-        return this.id.compareTo(o.id);
-    }
 }

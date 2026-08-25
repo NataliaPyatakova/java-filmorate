@@ -79,4 +79,17 @@ public class BaseStorage<T> {
     protected Integer count(String query, Object... params) {
         return jdbc.queryForObject(query, Integer.class, params);
     }
+
+    protected String placeholder(int size) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < size; i++) {
+            if (i > 0) {
+                sb.append(",");
+            }
+            sb.append("?");
+        }
+
+        return sb.toString();
+    }
 }

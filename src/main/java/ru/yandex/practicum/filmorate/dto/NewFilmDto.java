@@ -26,4 +26,5 @@ public class NewFilmDto {
     private int duration;
     private MpaRatingDto mpa;
     private Set<GenreDto> genres = new TreeSet<>();
+    private Set<DirectorDto> directors = new TreeSet<>();
 }

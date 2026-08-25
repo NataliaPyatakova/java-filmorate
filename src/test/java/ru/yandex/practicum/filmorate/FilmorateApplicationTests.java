@@ -12,10 +12,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.db.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.db.MpaRatingDBStorage;
-import ru.yandex.practicum.filmorate.storage.db.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.db.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +33,7 @@ class FilmorateApplicationTests {
     private final GenreDbStorage genreStorage;
     private final MpaRatingDBStorage mpaRatingStorage;
     private final FilmDbStorage filmStorage;
+    private final LikesRelationDBStorage likesRelationDBStorage;
     private static User user;
     private static User user1;
     private static User user2;
@@ -193,10 +191,10 @@ class FilmorateApplicationTests {
     void testFilmAddRemoveLike() {
         Film savedFilm = filmStorage.save(film);
         User savedUser = userStorage.save(user);
-        filmStorage.addLike(savedFilm, savedUser.getId());
-        assertEquals(1, filmStorage.countLikesByFilmId(savedFilm.getId()));
-        filmStorage.removeLike(savedFilm, savedUser.getId());
-        assertEquals(0, filmStorage.countLikesByFilmId(savedFilm.getId()));
+        likesRelationDBStorage.addLike(savedFilm, savedUser.getId());
+        assertEquals(1, likesRelationDBStorage.countLikesByFilmId(savedFilm.getId()));
+        likesRelationDBStorage.removeLike(savedFilm, savedUser.getId());
+        assertEquals(0, likesRelationDBStorage.countLikesByFilmId(savedFilm.getId()));
     }
 
     @Test
