@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.db;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 
@@ -18,7 +19,7 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
             """;
     private static final String UPDATE_QUERY = """
             UPDATE reviews
-            SET content = ?, is_positive = ?, user_id = ?, film_id = ?
+            SET content = ?, is_positive = ?
             WHERE review_id = ?
             """;
     private static final String DELETE_QUERY = """
@@ -88,13 +89,14 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
 
     @Override
     public Review create(Review review) {
+        review.setUseful(0);
         int id = insert(
                 INSERT_QUERY,
                 review.getContent(),
                 review.getIsPositive(),
                 review.getUserId(),
                 review.getFilmId(),
-                0
+                review.getUseful()
         );
         review.setReviewId(id);
         return review;
@@ -106,8 +108,6 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
                 UPDATE_QUERY,
                 review.getContent(),
                 review.getIsPositive(),
-                review.getUserId(),
-                review.getFilmId(),
                 review.getReviewId()
         );
         //так как useful мы не апдейтим напрямую, то достаем актуальный из базы
@@ -131,6 +131,7 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
     }
 
     @Override
+    @Transactional
     public void addLike(Integer reviewId, Integer userId) {
         Integer like = count(COUNT_LIKE_QUERY, reviewId, userId);
         if (like == 0) { //повторно не ставим лайк
@@ -145,6 +146,7 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
     }
 
     @Override
+    @Transactional
     public void addDisLike(Integer reviewId, Integer userId) {
         Integer dislike = count(COUNT_DISLIKE_QUERY, reviewId, userId);
         if (dislike == 0) { //повторно не ставим дизлайк
@@ -159,14 +161,22 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
     }
 
     @Override
+    @Transactional
     public void removeLike(Integer reviewId, Integer userId) {
-        deleteByParam(REMOVE_LIKE_QUERY, reviewId, userId);
-        update(UPDATE_USEFUL_MINUS_QUERY, reviewId);
+        Integer like = count(COUNT_LIKE_QUERY, reviewId, userId);
+        if (like != 0) { //если был лайк - снимаем его и выправляем рейтинг
+            deleteByParam(REMOVE_LIKE_QUERY, reviewId, userId);
+            update(UPDATE_USEFUL_MINUS_QUERY, reviewId);
+        }
     }
 
     @Override
+    @Transactional
     public void removeDisLike(Integer reviewId, Integer userId) {
-        deleteByParam(REMOVE_DISLIKE_QUERY, reviewId, userId);
-        update(UPDATE_USEFUL_PLUS_QUERY, reviewId);
+        Integer dislike = count(COUNT_DISLIKE_QUERY, reviewId, userId);
+        if (dislike != 0) {  //если был дислайк - снимаем его и выправляем рейтинг
+            deleteByParam(REMOVE_DISLIKE_QUERY, reviewId, userId);
+            update(UPDATE_USEFUL_PLUS_QUERY, reviewId);
+        }
     }
 }

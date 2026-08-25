@@ -19,4 +19,5 @@ public class Film {
     private MpaRating mpa;
     private Set<Genre> genres = new TreeSet<>();
     private int countLikes = 0;
+    private Set<Director> directors = new TreeSet<>();
 }

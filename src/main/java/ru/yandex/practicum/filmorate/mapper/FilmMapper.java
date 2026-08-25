@@ -22,6 +22,7 @@ public class FilmMapper {
         dto.setDuration(film.getDuration());
         dto.setMpa(MpaRatingMapper.mapToMpaRatingDto(film.getMpa()));
         dto.setGenres(film.getGenres().stream().map(GenreMapper::mapToGenreDto).collect(Collectors.toCollection(TreeSet::new)));  //для правильной сортировки
+        dto.setDirectors(film.getDirectors().stream().map(DirectorMapper::mapToDirectorDto).collect(Collectors.toCollection(TreeSet::new)));
         return dto;
     }
 
@@ -33,6 +34,7 @@ public class FilmMapper {
         film.setDuration(newFilmDto.getDuration());
         film.setMpa(MpaRatingMapper.mapToMpaRating(newFilmDto.getMpa()));
         film.setGenres(newFilmDto.getGenres().stream().map(GenreMapper::mapToGenre).collect(Collectors.toSet()));
+        film.setDirectors(newFilmDto.getDirectors().stream().map(DirectorMapper::mapToDirector).collect(Collectors.toCollection(TreeSet::new)));
         return film;
     }
 
@@ -68,6 +70,11 @@ public class FilmMapper {
             newFilm.setGenres(updateFilmDto.getGenres().stream().map(GenreMapper::mapToGenre).collect(Collectors.toSet()));
         } else {
             newFilm.setGenres(oldFilm.getGenres());
+        }
+        if (updateFilmDto.hasDirectors()) {
+            newFilm.setDirectors(updateFilmDto.getDirectors().stream().map(DirectorMapper::mapToDirector).collect(Collectors.toSet()));
+        } else {
+            newFilm.setDirectors(oldFilm.getDirectors());
         }
         return newFilm;
     }

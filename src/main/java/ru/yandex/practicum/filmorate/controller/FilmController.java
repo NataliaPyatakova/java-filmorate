@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
+import ru.yandex.practicum.filmorate.enumeration.FilmSortField;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
@@ -69,6 +70,12 @@ public class FilmController {
     @GetMapping("/common")
     public List<FilmDto> getCommonFilms(@RequestParam @NotNull Integer userId, @RequestParam @NotNull Integer friendId) {
         return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> findByDirector(@PathVariable @NotNull Integer directorId,
+                                        @RequestParam List<FilmSortField> sortBy) {
+        return filmService.findByDirector(directorId, sortBy);
     }
 }
 
