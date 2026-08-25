@@ -4,14 +4,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.enumeration.FilmByField;
 import ru.yandex.practicum.filmorate.enumeration.FilmSortField;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -120,6 +118,22 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
             GROUP BY f.FILM_ID
             ORDER BY %s
             """;
+    private static final String SEARCH_BY = """
+            SELECT f.FILM_ID,
+                   f.FILM_NAME,
+                   f.DESCRIPTION,
+                   f.RELEASE_DATE,
+                   f.DURATION,
+                   f.RATING_ID,
+                   COUNT(DISTINCT lr.USER_ID) AS likes
+            FROM FILMS F
+            LEFT JOIN DIRECTORS_RELATION DR ON DR.FILM_ID = F.FILM_ID
+            LEFT JOIN DIRECTORS D ON D.DIRECTOR_ID = DR.DIRECTOR_ID
+            LEFT JOIN LIKES_RELATION lr ON lr.FILM_ID = F.FILM_ID
+            WHERE %s
+            GROUP BY F.FILM_ID
+            ORDER BY likes DESC
+            """;
 
     public FilmDbStorage(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -213,5 +227,17 @@ public class FilmDbStorage extends BaseStorage<Film> implements FilmStorage {
                 .collect(Collectors.joining(", "));
         String query = GET_BY_DIRECTOR_QUERY.formatted(orderBy);
         return findMany(query, directorId);
+    }
+
+    @Override
+    public List<Film> search(String query, List<FilmByField> by) {
+        String pattern = "%" + query.toLowerCase() + "%";
+        String byDirectorAndOrTitle = by.stream()
+                .map(FilmByField::getSqlField)
+                .collect(Collectors.joining(" OR "));
+        String finalQuery = SEARCH_BY.formatted(byDirectorAndOrTitle);
+        Object[] params = new Object[by.size()];
+        Arrays.fill(params, pattern);
+        return findMany(finalQuery, params);
     }
 }

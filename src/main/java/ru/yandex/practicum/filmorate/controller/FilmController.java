@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
+import ru.yandex.practicum.filmorate.enumeration.FilmByField;
 import ru.yandex.practicum.filmorate.enumeration.FilmSortField;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -76,6 +79,11 @@ public class FilmController {
     public List<FilmDto> findByDirector(@PathVariable @NotNull Integer directorId,
                                         @RequestParam List<FilmSortField> sortBy) {
         return filmService.findByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> search(@RequestParam String query, @RequestParam List<FilmByField> by) {
+        return filmService.search(query,by);
     }
 }
 
