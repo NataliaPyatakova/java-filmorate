@@ -17,6 +17,8 @@ public interface ReviewStorage {
 
     List<Review> getByFilmAndCount(Integer filmId, int count);
 
+    List<Review> getByCount(int count);
+
     void addLike(Integer reviewId, Integer userId);
 
     void addDisLike(Integer reviewId, Integer userId);

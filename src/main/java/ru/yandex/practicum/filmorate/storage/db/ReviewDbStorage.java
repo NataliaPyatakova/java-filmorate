@@ -26,6 +26,12 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
             DELETE FROM reviews
             WHERE review_id = ?
             """;
+    private static final String GET_BY_COUNT_QUERY = """
+                        SELECT review_id, content, is_positive, user_id, film_id, useful
+                        FROM reviews
+                        ORDER BY useful DESC, review_id
+                        LIMIT ?
+                        """;
     private static final String FIND_BY_ID_QUERY = """
             SELECT review_id, content, is_positive, user_id, film_id, useful
             FROM reviews
@@ -118,6 +124,11 @@ public class ReviewDbStorage extends BaseStorage<Review> implements ReviewStorag
     @Override
     public void delete(Integer reviewId) {
         deleteByParam(DELETE_QUERY, reviewId);
+    }
+
+    @Override
+    public List<Review> getByCount(int count) {
+        return findMany(GET_BY_COUNT_QUERY, count);
     }
 
     @Override

@@ -56,6 +56,9 @@ public class ReviewService {
     }
 
     public List<ReviewDto> getByFilmAndCount(Integer filmId, int count) {
+        if (filmId == null) {
+            return reviewStorage.getByCount(count).stream().map(ReviewMapper::mapToReviewDto).toList();
+        }
         filmService.findById(filmId);
         return reviewStorage.getByFilmAndCount(filmId, count).stream().map(ReviewMapper::mapToReviewDto).toList();
     }

@@ -93,8 +93,9 @@ public class UserService {
     }
 
     public void deleteUser(Integer userId) {
-        userStorage.deleteById(userId);
         log.info("Удаление пользователя с id = {}", userId);
+        findUserById(userId);
+        userStorage.deleteById(userId);
     }
 
     public List<FilmDto> getRecommendations(Integer userId) {

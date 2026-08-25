@@ -90,7 +90,7 @@ public class FilmService {
     public FilmDto addLike(Integer id, Integer userId) {
         log.info("Adding like from User {} to Film {}", userId, id);
         Film film = findFilmById(id);
-        checkUserExist(id);
+        checkUserExist(userId);
         likesRelationService.addLike(film, userId);
         dataEnrichment(film);
         eventService.createEvent(userId, EventType.LIKE, Operation.ADD, id);
@@ -100,7 +100,7 @@ public class FilmService {
     public FilmDto removeLike(Integer id, Integer userId) {
         log.info("Removing like from User {} to Film {}", userId, id);
         Film film = findFilmById(id);
-        checkUserExist(id);
+        checkUserExist(userId);
         likesRelationService.removeLike(film, userId);
         dataEnrichment(film);
         eventService.createEvent(userId, EventType.LIKE, Operation.REMOVE, id);
@@ -130,6 +130,7 @@ public class FilmService {
 
     public void deleteFilm(Integer id) {
         log.info("Deleting film {}", id);
+        findFilmById(id);
         filmStorage.deleteById(id);
     }
 
@@ -142,6 +143,7 @@ public class FilmService {
     }
 
     public List<FilmDto> findByDirector(Integer directorId, List<FilmSortField> sortBy) {
+        directorService.findDirectorById(directorId);
         List<Film> films = filmStorage.getByDirector(directorId, sortBy);
         dataEnrichment(films);
         return films.stream().map(FilmMapper::mapToFilmDto).toList();

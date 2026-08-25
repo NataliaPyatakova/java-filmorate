@@ -12,11 +12,19 @@ import java.util.List;
 @Component
 public class LikesRelationDBStorage extends BaseStorage<LikesRelation> implements LikesRelationStorage {
 
-    private static final String INSERT_LIKE_QUERY = "INSERT INTO LIKES_RELATION" +
-            "(FILM_ID,USER_ID) " +
-            "VALUES (?, ?)";
+    private static final String INSERT_LIKE_QUERY = """
+            INSERT INTO LIKES_RELATION
+            (FILM_ID,USER_ID)
+            VALUES (?, ?)
+            """;
     private static final String DELETE_LIKE_QUERY = "DELETE FROM LIKES_RELATION WHERE FILM_ID = ? AND USER_ID = ?";
     private static final String COUNT_LIKE_QUERY = "SELECT COUNT(DISTINCT USER_ID) AS COUNT_LIKES FROM LIKES_RELATION WHERE FILM_ID = ?";
+    private static final String COUNT_LIKE_USER_QUERY = """
+            SELECT COUNT(DISTINCT USER_ID) AS COUNT_LIKES
+            FROM LIKES_RELATION
+            WHERE FILM_ID = ?
+            AND USER_ID = ?
+            """;
     private static final String GET_ALL_LIKES_QUERY = "SELECT FILM_ID, USER_ID FROM LIKES_RELATION";
 
     public LikesRelationDBStorage(JdbcTemplate jdbc, RowMapper<LikesRelation> mapper) {
@@ -25,7 +33,10 @@ public class LikesRelationDBStorage extends BaseStorage<LikesRelation> implement
 
     @Override
     public void addLike(Film film, Integer userId) {
-        insertRelation(INSERT_LIKE_QUERY, film.getId(), userId);
+        Integer like = count(COUNT_LIKE_USER_QUERY, film.getId(), userId);
+        if (like == 0) {
+            insertRelation(INSERT_LIKE_QUERY, film.getId(), userId);
+        }
     }
 
     @Override
