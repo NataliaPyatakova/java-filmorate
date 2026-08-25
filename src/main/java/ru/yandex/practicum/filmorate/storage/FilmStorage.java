@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import ru.yandex.practicum.filmorate.enumeration.FilmSortField;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
@@ -25,4 +26,6 @@ public interface FilmStorage {
     List<Film> getPopular(int count, Integer genreId, Integer year);
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
+
+    List<Film> getByDirector(Integer directorId, List<FilmSortField> sortBy);
 }

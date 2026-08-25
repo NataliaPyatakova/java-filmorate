@@ -6,15 +6,13 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.enumeration.EventType;
+import ru.yandex.practicum.filmorate.enumeration.FilmSortField;
 import ru.yandex.practicum.filmorate.enumeration.Operation;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.MpaRatingMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.GenresRelation;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -33,6 +31,7 @@ public class FilmService {
     private final Map<Integer, MpaRating> mpaRatingList;
     private final LikesRelationService likesRelationService;
     private final EventService eventService;
+    private final DirectorService directorService;
 
     private static final LocalDate START_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
@@ -41,7 +40,8 @@ public class FilmService {
                        GenreService genreService,
                        MpaRatingService mpaRatingService,
                        LikesRelationService likesRelationService,
-                       EventService eventService) {
+                       EventService eventService,
+                       DirectorService directorService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.genreService = genreService;
@@ -51,6 +51,7 @@ public class FilmService {
                 .collect(Collectors.toMap(MpaRating::getId, MpaRating -> MpaRating));
         this.likesRelationService = likesRelationService;
         this.eventService = eventService;
+        this.directorService = directorService;
     }
 
     public List<FilmDto> findAll() {
@@ -74,8 +75,8 @@ public class FilmService {
         log.info("Updating OldFilm {}", oldFilm);
         Film newFilm = FilmMapper.updateFilmFields(oldFilm, updateFilmDto);
         validate(newFilm);
-        dataEnrichment(newFilm);
         Film updatedFilm = filmStorage.update(newFilm);
+        dataEnrichment(updatedFilm);
         return FilmMapper.mapToFilmDto(updatedFilm);
     }
 
@@ -139,6 +140,12 @@ public class FilmService {
         return films.stream().map(FilmMapper::mapToFilmDto).toList();
     }
 
+    public List<FilmDto> findByDirector(Integer directorId, List<FilmSortField> sortBy) {
+        List<Film> films = filmStorage.getByDirector(directorId, sortBy);
+        dataEnrichment(films);
+        return films.stream().map(FilmMapper::mapToFilmDto).toList();
+    }
+
     private void checkUserExist(Integer userId) {
         userStorage.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден"));
     }
@@ -154,14 +161,19 @@ public class FilmService {
         //не трогать - запуск единичный, нужна проверка на существование id
         mpaRatingService.findById((film.getMpa().getId()));
         film.getGenres().forEach(genre -> genreService.findById(genre.getId()));
+        film.getDirectors().forEach(director -> directorService.findDirectorById(director.getId()));
     }
 
     private void dataEnrichment(Film film) {
         film.setMpa(mpaRatingList.get(film.getMpa().getId()));
         film.setGenres(genreService.findByFilmId(film.getId()));
+        film.setDirectors(directorService.findDirectorByFilmId(film.getId()));
     }
 
     private void dataEnrichment(List<Film> films) {
+        //1 рейтинг
+        films.forEach(film -> film.setMpa(mpaRatingList.get(film.getMpa().getId())));
+        //2 жанры
         List<GenresRelation> genreList = genreService.findFilmGenreRelations();
         Map<Integer, Set<Genre>> genreMap = new HashMap<>();
         genreList.forEach(genresRelation -> {
@@ -169,8 +181,16 @@ public class FilmService {
                     genreSet1.add(genresRelation.getGenre());
                 }
         );
-        films.forEach(film -> film.setMpa(mpaRatingList.get(film.getMpa().getId())));
         films.forEach(film -> film.setGenres(genreMap.computeIfAbsent(film.getId(), g -> new TreeSet<>())));
+        //3 директора
+        List<DirectorsRelation> directorsList = directorService.findDirectorsRelations();
+        Map<Integer, Set<Director>> directorMap = new HashMap<>();
+        directorsList.forEach(directorRelation -> {
+            Set<Director> directorSet = directorMap.computeIfAbsent(directorRelation.getId(), g -> new TreeSet<>());
+            directorSet.add(directorRelation.getDirector());
+        }
+        );
+        films.forEach(film -> film.setDirectors(directorMap.computeIfAbsent(film.getId(), g -> new TreeSet<>())));
     }
 }
 
