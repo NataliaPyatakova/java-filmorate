@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmDto;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmDto;
 import ru.yandex.practicum.filmorate.enumeration.EventType;
+import ru.yandex.practicum.filmorate.enumeration.FilmByField;
 import ru.yandex.practicum.filmorate.enumeration.FilmSortField;
 import ru.yandex.practicum.filmorate.enumeration.Operation;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -142,6 +143,18 @@ public class FilmService {
 
     public List<FilmDto> findByDirector(Integer directorId, List<FilmSortField> sortBy) {
         List<Film> films = filmStorage.getByDirector(directorId, sortBy);
+        dataEnrichment(films);
+        return films.stream().map(FilmMapper::mapToFilmDto).toList();
+    }
+
+    public List<FilmDto> search(String query, List<FilmByField> by) {
+        if (query.isBlank()) {
+            throw new ValidationException("Параметр query не может быть пустым");
+        }
+        if (by.isEmpty()) {
+            throw new ValidationException("Параметр by не может быть пустым");
+        }
+        List<Film> films = filmStorage.search(query, by);
         dataEnrichment(films);
         return films.stream().map(FilmMapper::mapToFilmDto).toList();
     }
